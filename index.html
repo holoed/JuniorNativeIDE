@@ -1,46 +1,152 @@
-
-<!doctype html>
-
-<title>CodeMirror: Haskell mode</title>
+<html>
+    <head>
 <meta charset="utf-8"/>
 <link rel=stylesheet href="https://codemirror.net/3/doc/docs.css">
 
 <link rel="stylesheet" href="https://codemirror.net/3/lib/codemirror.css">
-<link rel="stylesheet" href="https://codemirror.net/3/theme/blackboard.css">
-<link rel="stylesheet" href="https://codemirror.net/3/addon/display/fullscreen.css">
+<link rel="stylesheet" href="https://codemirror.net/3/theme/ambiance.css">
 <script src="https://codemirror.net/3/lib/codemirror.js"></script>
 <script src="https://codemirror.net/3/addon/edit/matchbrackets.js"></script>
-<script src="https://codemirror.net/3/addon/display/fullscreen.js"></script>
 <script src="https://codemirror.net/3/mode/haskell/haskell.js"></script>
 <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
+<style>
 
-<form><textarea id="code" name="code">
-let foldr f v xs = 
-    if (null xs) then v 
-    else f (hd xs) (foldr f v (tl xs)) 
+.splitter {
+    width: 100%;
+    height: 97%;
+    display: flex;
+}
 
- let concat xs ys = foldr cons ys xs
+#separator {
+    cursor: col-resize;
+    background-color: #aaa;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 10px;
+    height: 97%;
 
- let filter p = foldr (\\x -> \\xs -> if (p x) then cons x xs else xs) empty
+    /* Prevent the browser's built-in drag from interfering */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 
- let singleton x = cons x empty
+#first {
+    width:60%;
+    height: 97%;
+    min-width: 10px;
+}
 
- let quicksort f xs =
-   if (null xs) then xs else  
-   let pivot = hd xs in
-   let rest = tl xs in
-   let lessThan = filter (\\x -> f x < f pivot) rest in 
-   let greaterThan = filter (\\x -> f x > f pivot) rest in
-   concat (concat (quicksort f lessThan) (singleton pivot)) (quicksort f greaterThan)
-</textarea></form>
+#second {
+    width: 40%;
+    height: 97%;
+    min-width: 10px;
+}
 
-    <script>
+#head {
+    width: 100%;
+    height: 3%;
+}
+
+.CodeMirror { height: 100%; }
+
+</style></head><body>
+
+<div id="head">Junior Native</div>
+<div class="splitter">
+    <div id="first">
+        <textarea id="code" name="code">
+
+        let foldr f v xs = 
+            if (null xs) then v 
+            else f (hd xs) (foldr f v (tl xs)) 
+        
+         let concat xs ys = foldr cons ys xs
+        
+         let filter p = foldr (\\x -> \\xs -> if (p x) then cons x xs else xs) empty
+        
+         let singleton x = cons x empty
+        
+         let quicksort f xs =
+           if (null xs) then xs else  
+           let pivot = hd xs in
+           let rest = tl xs in
+           let lessThan = filter (\\x -> f x < f pivot) rest in 
+           let greaterThan = filter (\\x -> f x > f pivot) rest in
+           concat (concat (quicksort f lessThan) (singleton pivot)) (quicksort f greaterThan)
+        </textarea>
+    </div>
+    <div id="separator" ></div>
+    <div id="second" >
+        <textarea id="types" name="types">
+         </textarea>
+    </div>
+</div>
+
+<script>
+
+// A function is used for dragging and moving
+function dragElement(element, direction)
+{
+    var   md; // remember mouse down info
+    const first  = document.getElementById("first");
+    const second = document.getElementById("second");
+
+    element.onmousedown = onMouseDown;
+
+    function onMouseDown(e)
+    {
+        //console.log("mouse down: " + e.clientX);
+        md = {e,
+              offsetLeft:  element.offsetLeft,
+              offsetTop:   element.offsetTop,
+              firstWidth:  first.offsetWidth,
+              secondWidth: second.offsetWidth
+             };
+
+        document.onmousemove = onMouseMove;
+        document.onmouseup = () => {
+            //console.log("mouse up");
+            document.onmousemove = document.onmouseup = null;
+        }
+    }
+
+    function onMouseMove(e)
+    {
+        //console.log("mouse move: " + e.clientX);
+        var delta = {x: e.clientX - md.e.clientX,
+                     y: e.clientY - md.e.clientY};
+
+        if (direction === "H" ) // Horizontal
+        {
+            // Prevent negative-sized elements
+            delta.x = Math.min(Math.max(delta.x, -md.firstWidth),
+                       md.secondWidth);
+
+            element.style.left = md.offsetLeft + delta.x + "px";
+            first.style.width = (md.firstWidth + delta.x) + "px";
+            second.style.width = (md.secondWidth - delta.x) + "px";
+        }
+    }
+}
+
+
+dragElement( document.getElementById("separator"), "H" );
+
+
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
         lineNumbers: true,
         matchBrackets: true,
-        theme: "blackboard"
+        theme: "ambiance"
       });
-      editor.setOption("fullScreen", true);
-    </script>
+
+      var editor2 = CodeMirror.fromTextArea(document.getElementById("types"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        theme: "ambiance"
+      });
+    
+    
 
 
+</script></body></html>
