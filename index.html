@@ -145,7 +145,14 @@ dragElement( document.getElementById("separator"), "H" );
         matchBrackets: true,
         theme: "ambiance"
       });
+
+      window.onload = function() {
     
+      editor.on("change", function () {
+        var code = editor.getValue();
+        editor2.setValue(code);
+      });
+    };
     
 
 
