@@ -1,0 +1,46 @@
+
+<!doctype html>
+
+<title>CodeMirror: Haskell mode</title>
+<meta charset="utf-8"/>
+<link rel=stylesheet href="https://codemirror.net/3/doc/docs.css">
+
+<link rel="stylesheet" href="https://codemirror.net/3/lib/codemirror.css">
+<link rel="stylesheet" href="https://codemirror.net/3/theme/blackboard.css">
+<link rel="stylesheet" href="https://codemirror.net/3/addon/display/fullscreen.css">
+<script src="https://codemirror.net/3/lib/codemirror.js"></script>
+<script src="https://codemirror.net/3/addon/edit/matchbrackets.js"></script>
+<script src="https://codemirror.net/3/addon/display/fullscreen.js"></script>
+<script src="https://codemirror.net/3/mode/haskell/haskell.js"></script>
+<style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
+
+<form><textarea id="code" name="code">
+let foldr f v xs = 
+    if (null xs) then v 
+    else f (hd xs) (foldr f v (tl xs)) 
+
+ let concat xs ys = foldr cons ys xs
+
+ let filter p = foldr (\\x -> \\xs -> if (p x) then cons x xs else xs) empty
+
+ let singleton x = cons x empty
+
+ let quicksort f xs =
+   if (null xs) then xs else  
+   let pivot = hd xs in
+   let rest = tl xs in
+   let lessThan = filter (\\x -> f x < f pivot) rest in 
+   let greaterThan = filter (\\x -> f x > f pivot) rest in
+   concat (concat (quicksort f lessThan) (singleton pivot)) (quicksort f greaterThan)
+</textarea></form>
+
+    <script>
+      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        theme: "blackboard"
+      });
+      editor.setOption("fullScreen", true);
+    </script>
+
+
