@@ -146,11 +146,22 @@ dragElement( document.getElementById("separator"), "H" );
         theme: "ambiance"
       });
 
+      var url = "http://junior-type.default.127.0.0.1.nip.io";
+
       window.onload = function() {
     
       editor.on("change", function () {
         var code = editor.getValue();
-        editor2.setValue(code);
+
+        fetch(url, { method:'POST', body: code})
+        .then(res => {
+	      // Handle response
+          editor2.setValue(code);
+        })
+        .catch(err => {
+	      // Handle error
+	      console.log('Error message: ', err);
+        });
       });
     };
     
