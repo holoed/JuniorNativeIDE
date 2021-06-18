@@ -55,13 +55,11 @@
 <div id="head">Junior Native</div>
 <div class="splitter">
     <div id="first">
-        <textarea id="code" name="code">
-        </textarea>
+        <textarea id="code" name="code"></textarea>
     </div>
     <div id="separator" ></div>
     <div id="second" >
-        <textarea id="types" name="types">
-         </textarea>
+        <textarea id="types" name="types"></textarea>
     </div>
 </div>
 
@@ -128,17 +126,20 @@ dragElement( document.getElementById("separator"), "H" );
         theme: "ambiance"
       });
 
-      var url = "http://junior-type.default.127.0.0.1.nip.io";
-
       window.onload = function() {
     
       editor.on("change", function () {
         var code = editor.getValue();
 
-        fetch(url, { method:'POST', mode:"no-cors", body: code})
+        fetch("type/", { method:'POST', body: code})
         .then(res => {
 	      // Handle response
-          editor2.setValue(res.text);
+          res.text().then(function (text) {
+            if (!text.includes("EOF")) {
+                editor2.setValue(text);
+            }
+          });
+          
         })
         .catch(err => {
 	      // Handle error
