@@ -15,4 +15,22 @@ let quicksort f xs =
     let lessThan = filter (\x -> f x < f pivot) rest in 
     let greaterThan = filter (\x -> f x > f pivot) rest in
     concat (concat (quicksort f lessThan) (singleton pivot)) (quicksort f greaterThan)
+    
+let foldl f v xs = 
+    if (null xs) then v 
+    else foldl f (f v (hd xs)) (tl xs)
+    
+let reverse xs = foldl (\xs x -> cons x xs) empty xs
+
+let range f startIndex endIndex = 
+	let range' acc endIndex = 
+    	if startIndex > endIndex then acc
+        else range' (cons (f endIndex) acc) (endIndex - 1) in
+    range' empty endIndex
+    
+let partition n xs = 
+	let partition' n acc xs = 
+    	if (n == 0 || null xs) then (reverse acc, xs)
+        else partition' (n - 1) (cons (hd xs) acc) (tl xs) in
+    partition' n empty xs 
        
