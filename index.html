@@ -2,7 +2,6 @@
     <head>
 <meta charset="utf-8"/>
 <link rel=stylesheet href="https://codemirror.net/3/doc/docs.css">
-
 <link rel="stylesheet" href="https://codemirror.net/3/lib/codemirror.css">
 <link rel="stylesheet" href="https://codemirror.net/3/theme/ambiance.css">
 <script src="https://codemirror.net/3/lib/codemirror.js"></script>
@@ -10,6 +9,10 @@
 <script src="https://codemirror.net/3/mode/haskell/haskell.js"></script>
 <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
 <style>
+
+.marked-text {
+    text-decoration: red double underline;
+}
 
 .splitter {
     width: 100%;
@@ -128,6 +131,7 @@ dragElement( document.getElementById("separator"), "H" );
 
       window.onload = function() {
     
+      const markers = [];  
       editor.on("change", function () {
         var code = editor.getValue();
 
@@ -137,6 +141,16 @@ dragElement( document.getElementById("separator"), "H" );
           res.text().then(function (text) {
             if (!text.includes("EOF")) {
                 editor2.setValue(text);
+                markers.forEach(marker => marker.clear());
+                try {
+                    const obj = JSON.parse(text);
+                    const loc = obj.loc;
+                    const from = { line: loc.line - 1, ch: loc.column - 1 };
+                    const to = { line: loc.line - 1, ch: loc.column + 1 };
+                    markers.push(editor.markText(from, to, { className: 'marked-text', title: obj.msg}));
+                } catch(e) {
+                    console.log(e);
+                }
             }
           });
           
