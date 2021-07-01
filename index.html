@@ -146,7 +146,7 @@ dragElement( document.getElementById("separator"), "H" );
                     const obj = JSON.parse(text);
                     const loc = obj.loc;
                     const from = { line: loc.line - 1, ch: loc.column - 1 };
-                    const to = { line: loc.line - 1, ch: loc.column + 1 };
+                    const to = { line: loc.line - 1, ch: loc.column + loc.len - 1 };
                     markers.push(editor.markText(from, to, { className: 'marked-text', title: obj.msg}));
                 } catch(e) {
                     console.log(e);
