@@ -10,8 +10,13 @@
 <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
 <style>
 
-.marked-text {
-    text-decoration: red double underline;
+.CodeMirror-lint-mark {
+  background-position: left bottom;
+  background-repeat: repeat-x;
+}
+
+.CodeMirror-lint-mark-error {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJDw4cOCW1/KIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAHElEQVQI12NggIL/DAz/GdA5/xkY/qPKMDAwAADLZwf5rvm+LQAAAABJRU5ErkJggg==");
 }
 
 .splitter {
@@ -147,7 +152,7 @@ dragElement( document.getElementById("separator"), "H" );
                     const loc = obj.loc;
                     const from = { line: loc.line - 1, ch: loc.column - 1 };
                     const to = { line: loc.line - 1, ch: loc.column + loc.len - 1 };
-                    markers.push(editor.markText(from, to, { className: 'marked-text', title: obj.msg}));
+                    markers.push(editor.markText(from, to, { className: 'CodeMirror-lint-mark CodeMirror-lint-mark-error', title: obj.msg}));
                 } catch(e) {
                     console.log(e);
                 }
