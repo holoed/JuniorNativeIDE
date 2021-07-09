@@ -123,10 +123,60 @@ function dragElement(element, direction)
 
 dragElement( document.getElementById("separator"), "H" );
 
+function showTooltip(e, content) {
+    var tt = document.createElement("div");
+    tt.className = "CodeMirror-hover-tooltip";
+    if (typeof content == "string") {
+        content = document.createTextNode(content);
+    }
+    tt.appendChild(content);
+    document.body.appendChild(tt);
+
+    function position(e) {
+        tt.style.top = Math.max(0, e.top - tt.offsetHeight - 5) + "px";
+        tt.style.left = (e.left + 5) + "px";
+    }
+    position(e);
+    if (tt.style.opacity != null)
+        tt.style.opacity = 1;
+    return tt;
+}
+
+var activeTooltip = null;
+var removeTT = function(cm) { removeTooltip(cm, activeTooltip); }
+
+function removeTooltip(editor, elt) {
+    editor.off("scroll", removeTT);
+    editor.off("mousedown", removeTT);
+    if (elt.parentNode)
+        elt.parentNode.removeChild(elt);
+}
+
+var dictionary = {};
+const keyMap = {
+    "Shift-Alt-=": function (cm) {
+        if (activeTooltip != null) removeTooltip(cm, activeTooltip);
+
+        const cursor = cm.getCursor();
+        const token = cm.getTokenAt(cursor);
+        const start = token.start + 1;
+        const end = cursor.ch;
+        const line = cursor.line + 1;
+        const currentWord = token.string;
+
+        const key = "(" + line + "," + start + "," + currentWord.length + "," + currentWord + ")"; 
+        var ret = dictionary[key];       
+        activeTooltip = showTooltip(cm.cursorCoords(true), ret.ty);
+        cm.on("scroll", removeTT);
+        cm.on("mousedown", removeTT);
+    }
+}
+
 
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
         lineNumbers: true,
         matchBrackets: true,
+        extraKeys: keyMap,
         theme: "ambiance"
       });
 
@@ -138,7 +188,6 @@ dragElement( document.getElementById("separator"), "H" );
 
       window.onload = function() {
     
-      var dictionary = {};
       const markers = [];  
       editor.on("change", function () {
         var code = editor.getValue();

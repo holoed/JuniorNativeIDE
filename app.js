@@ -1,7 +1,9 @@
-const express = require('express')
-const app = express()
-const port = 8080
+const express = require('express');
+const path = require('path');
+const app = express();
+const port = 8081;
 
+app.use("/", express.static(path.join(__dirname, 'web')));
 app.use('/', require('./routes'));
 
 process.on('SIGINT', function() {
