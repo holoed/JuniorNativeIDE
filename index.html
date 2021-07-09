@@ -136,6 +136,7 @@ dragElement( document.getElementById("separator"), "H" );
 
       window.onload = function() {
     
+      var dictionary = {};
       const markers = [];  
       editor.on("change", function () {
         var code = editor.getValue();
@@ -148,6 +149,14 @@ dragElement( document.getElementById("separator"), "H" );
                 markers.forEach(marker => marker.clear());
                 const obj = JSON.parse(text);
                 if (Array.isArray(obj)) {
+                    obj.forEach(sym => {
+                        dictionary["(" +
+                                   sym.name.loc.line + "," + 
+                                   sym.name.loc.column + "," + 
+                                   sym.name.loc.len + "," +
+                                   sym.name.txt + 
+                                   ")"] = sym;
+                    });
                     env = obj.filter(x => x.top).map(x => x.name.txt + " : " + x.ty)
                     ret = env.join("\n")    
                     editor2.setValue(ret);
