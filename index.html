@@ -145,16 +145,18 @@ dragElement( document.getElementById("separator"), "H" );
 	      // Handle response
           res.text().then(function (text) {
             if (!text.includes("EOF")) {
-                editor2.setValue(text);
                 markers.forEach(marker => marker.clear());
-                try {
-                    const obj = JSON.parse(text);
+                const obj = JSON.parse(text);
+                if (Array.isArray(obj)) {
+                    env = obj.filter(x => x.top).map(x => x.name.txt + " : " + x.ty)
+                    ret = env.join("\n")    
+                    editor2.setValue(ret);
+                } else {
+                    editor2.setValue(JSON.stringify(obj));
                     const loc = obj.loc;
                     const from = { line: loc.line - 1, ch: loc.column - 1 };
                     const to = { line: loc.line - 1, ch: loc.column + loc.len - 1 };
-                    markers.push(editor.markText(from, to, { className: 'CodeMirror-lint-mark CodeMirror-lint-mark-error', title: obj.msg}));
-                } catch(e) {
-                    console.log(e);
+                    markers.push(editor.markText(from, to, { className: 'CodeMirror-lint-mark CodeMirror-lint-mark-error', title: obj.txt}));
                 }
             }
           });
