@@ -149,6 +149,7 @@ dragElement( document.getElementById("separator"), "H" );
                 markers.forEach(marker => marker.clear());
                 const obj = JSON.parse(text);
                 if (Array.isArray(obj)) {
+                    dictionary = {};
                     obj.forEach(sym => {
                         dictionary["(" +
                                    sym.name.loc.line + "," + 
