@@ -6,7 +6,7 @@ const textParser = require('body-parser').text();
 
 router.post('/type', textParser, function(req, res) {
     request.post({ headers: {'content-type' : 'text/plain'}
-    , url: "http://localhost:8080", body: req.body }
+    , url: "http://junior-type.default.svc.cluster.local", body: req.body }
     , function(error, response, body){
         res.send(body);
     });    
