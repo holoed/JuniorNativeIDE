@@ -198,8 +198,9 @@ const keyMap = {
           res.text().then(function (text) {
             if (!text.includes("EOF")) {
                 markers.forEach(marker => marker.clear());
-                const obj = JSON.parse(text);
-                if (Array.isArray(obj)) {
+                const json = JSON.parse(text);
+                if (json[1] != undefined && Array.isArray(json[1])) {
+                    const obj = json[1];
                     dictionary = {};
                     obj.forEach(sym => {
                         dictionary["(" +
@@ -208,11 +209,10 @@ const keyMap = {
                                    sym.name.loc.len + "," +
                                    sym.name.txt + 
                                    ")"] = sym;
-                    });
-                    env = obj.filter(x => x.top).map(x => x.name.txt + " : " + x.ty)
-                    ret = env.join("\n")    
-                    editor2.setValue(ret);
+                    });   
+                    editor2.setValue(json[0]);
                 } else {
+                    const obj = json;
                     editor2.setValue(JSON.stringify(obj));
                     const loc = obj.loc;
                     const from = { line: loc.line - 1, ch: loc.column - 1 };
