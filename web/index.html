@@ -190,31 +190,31 @@ const keyMap = {
       window.onload = function() {
 
       var canvas = document.getElementById('canvas');
+      canvas.style.left = "60%";
+      canvas.style.top = "10%";
+      canvas.style.width = "500";
+      canvas.style.height = "500";
+      canvas.style.zIndex = "2";
+      canvas.style.position = "absolute";
+      var ctx = canvas.getContext('2d');
     
       const markers = [];  
       editor.on("change", function () {
         var code = editor.getValue();
         editor2.setValue("");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = "none"; 
         fetch("type/", { method:'POST', body: code})
         .then(res => {
 	      // Handle response
-          res.text().then(function (text) {
-            canvas.style.display = "none";  
+          res.text().then(function (text) { 
             if (!text.includes("EOF")) {
                 markers.forEach(marker => marker.clear());
                 const json = JSON.parse(text);
                 if (json[0] != undefined) {
                     var imageData = JSON.parse(json[0])
+                    canvas.style.display = "block";
                     if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
-                        canvas.style.left = "60%";
-                        canvas.style.top = "10%";
-                        canvas.style.width = "500";
-                        canvas.style.height = "500";
-                        canvas.style.zIndex = "2";
-                        canvas.style.position = "absolute";
-                        canvas.style.display = "block";
-                        var ctx = canvas.getContext('2d');
-
                         for(var y = 0; y < imageData.length; y++){
                             for(var x = 0; x < imageData[y].length; x++){
                                ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
