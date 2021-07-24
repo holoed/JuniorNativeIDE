@@ -70,6 +70,7 @@
     <div id="separator" ></div>
     <div id="second" >
         <textarea id="types" name="types"></textarea>
+        <canvas id="canvas" width="200" height="200" style="display: none;"></canvas>
     </div>
 </div>
 
@@ -187,18 +188,43 @@ const keyMap = {
       });
 
       window.onload = function() {
+
+      var canvas = document.getElementById('canvas');
     
       const markers = [];  
       editor.on("change", function () {
         var code = editor.getValue();
-
+        editor2.setValue("");
         fetch("type/", { method:'POST', body: code})
         .then(res => {
 	      // Handle response
           res.text().then(function (text) {
+            canvas.style.display = "none";  
             if (!text.includes("EOF")) {
                 markers.forEach(marker => marker.clear());
                 const json = JSON.parse(text);
+                if (json[0] != undefined) {
+                    var imageData = JSON.parse(json[0])
+                    if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
+                        canvas.style.left = "60%";
+                        canvas.style.top = "10%";
+                        canvas.style.width = "500";
+                        canvas.style.height = "500";
+                        canvas.style.zIndex = "2";
+                        canvas.style.position = "absolute";
+                        canvas.style.display = "block";
+                        var ctx = canvas.getContext('2d');
+
+                        for(var y = 0; y < imageData.length; y++){
+                            for(var x = 0; x < imageData[y].length; x++){
+                               ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
+                               ctx.fillRect( x, y, 1, 1 );
+                            }
+                        }
+                    }
+                }
+
+
                 if (json[1] != undefined && Array.isArray(json[1])) {
                     const obj = json[1];
                     dictionary = {};
