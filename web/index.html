@@ -191,10 +191,8 @@ const keyMap = {
 
       var canvas = document.getElementById('canvas');
       canvas.style.zIndex = "2";
-      canvas.width  = 300;
-      canvas.height = 300; 
-      canvas.style.width  = '600px';
-      canvas.style.height = '600px';
+      canvas.style.width  = '100%';
+      canvas.style.height = '100%';
       var ctx = canvas.getContext('2d');
     
       const markers = [];  
@@ -213,9 +211,12 @@ const keyMap = {
                 const json = JSON.parse(text);
                 if (json[0] != undefined) {
                     var imageData = JSON.parse(json[0])
-                    editor2.getWrapperElement().style.display = "none";
-                    canvas.style.display = "block";
                     if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
+                    editor2.getWrapperElement().style.display = "none";
+                    canvas.width  = imageData.length;
+                    canvas.height = imageData.length; 
+                    canvas.style.display = "block";
+
                         for(var y = 0; y < imageData.length; y++){
                             for(var x = 0; x < imageData[y].length; x++){
                                ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
