@@ -68,9 +68,9 @@
         <textarea id="code" name="code"></textarea>
     </div>
     <div id="separator" ></div>
-    <div id="second" >
+    <div id="second" style="background-color: black;">
         <textarea id="types" name="types"></textarea>
-        <canvas id="canvas" width="200" height="200" style="display: none;"></canvas>
+        <canvas id="canvas" style="display: none;"></canvas>
     </div>
 </div>
 
@@ -190,12 +190,11 @@ const keyMap = {
       window.onload = function() {
 
       var canvas = document.getElementById('canvas');
-      canvas.style.left = "60%";
-      canvas.style.top = "10%";
-      canvas.style.width = "500";
-      canvas.style.height = "500";
       canvas.style.zIndex = "2";
-      canvas.style.position = "absolute";
+      canvas.width  = 300;
+      canvas.height = 300; 
+      canvas.style.width  = '600px';
+      canvas.style.height = '600px';
       var ctx = canvas.getContext('2d');
     
       const markers = [];  
@@ -203,7 +202,8 @@ const keyMap = {
         var code = editor.getValue();
         editor2.setValue("");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.style.display = "none"; 
+        canvas.style.display = "none";
+        editor2.getWrapperElement().style.display = "block";
         fetch("type/", { method:'POST', body: code})
         .then(res => {
 	      // Handle response
@@ -213,6 +213,7 @@ const keyMap = {
                 const json = JSON.parse(text);
                 if (json[0] != undefined) {
                     var imageData = JSON.parse(json[0])
+                    editor2.getWrapperElement().style.display = "none";
                     canvas.style.display = "block";
                     if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
                         for(var y = 0; y < imageData.length; y++){
