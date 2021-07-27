@@ -4,9 +4,9 @@ const request = require('request');
 
 const textParser = require('body-parser').text();
 
-router.post('/type', textParser, function(req, res) {
+router.post('/run', textParser, function(req, res) {
     request.post({ headers: {'content-type' : 'text/plain'}
-    , url: "http://junior-type.default.svc.cluster.local", body: req.body }
+    , url: "http://junior-type.default.svc.cluster.local/run", body: req.body }
     , function(error, response, body){
         res.send(body);
     });    

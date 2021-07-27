@@ -202,7 +202,7 @@ const keyMap = {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         canvas.style.display = "none";
         editor2.getWrapperElement().style.display = "block";
-        fetch("type/", { method:'POST', body: code})
+        fetch("run/", { method:'POST', body: code})
         .then(res => {
 	      // Handle response
           res.text().then(function (text) { 
