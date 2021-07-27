@@ -1,6 +1,7 @@
 <html>
     <head>
 <meta charset="utf-8"/>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel=stylesheet href="https://codemirror.net/3/doc/docs.css">
 <link rel="stylesheet" href="https://codemirror.net/3/lib/codemirror.css">
 <link rel="stylesheet" href="https://codemirror.net/3/theme/ambiance.css">
@@ -55,14 +56,22 @@
 
 #head {
     width: 100%;
-    height: 3%;
+    height: 5%;
 }
 
 .CodeMirror { height: 100%; }
 
 </style></head><body>
 
-<div id="head">Junior Native</div>
+<div id="head" class="w3-bar w3-black" style="display: flex">
+        <div class="w3-bar-item" style="flex-grow: 1;">Junior</div>
+        <div style="text-align: right;">
+            <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Typed')">Typed</button>
+            <button class="w3-bar-item w3-button tablink"onclick="openTab(event, 'Compiled')">Compiled</button>
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Output')">Output</button>
+        </div>
+</div>
+
 <div class="splitter">
     <div id="first">
         <textarea id="code" name="code"></textarea>
@@ -70,11 +79,47 @@
     <div id="separator" ></div>
     <div id="second" style="background-color: black;">
         <textarea id="types" name="types"></textarea>
+        <textarea id="compiled" name="compiled"></textarea>
+        <textarea id="out" name="out"></textarea>
         <canvas id="canvas" style="display: none;"></canvas>
     </div>
 </div>
 
 <script>
+
+function activatePanel(name) {
+   clearPanels();
+   if (name == "Typed") {
+    editorTypes.getWrapperElement().style.display = "block"; 
+    compileTo("/type", editor.getValue(), editorTypes);  
+   }
+   if (name == "Compiled") {
+    editorCompiled.getWrapperElement().style.display = "block";
+    compileTo("/compile", editor.getValue(), editorCompiled);
+   }
+   if (name == "Output") { 
+    editorOutput.getWrapperElement().style.display = "block";
+
+   }
+}
+
+function clearPanels() {
+  var canvas = document.getElementById('canvas');
+  canvas.style.display = "none";
+  editorOutput.getWrapperElement().style.display = "none";
+  editorCompiled.getWrapperElement().style.display = "none";
+  editorTypes.getWrapperElement().style.display = "none";
+}
+
+function openTab(evt, tabName) {
+  var i, tablinks;
+  activatePanel(tabName);
+  tablinks = document.getElementsByClassName("tablink");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" w3-red", "");
+  }
+  evt.currentTarget.className += " w3-red";
+}
 
 // A function is used for dragging and moving
 function dragElement(element, direction)
@@ -170,6 +215,48 @@ const keyMap = {
         activeTooltip = showTooltip(cm.cursorCoords(true), ret.ty);
         cm.on("scroll", removeTT);
         cm.on("mousedown", removeTT);
+    },
+    "Ctrl-.": function (cm) {
+        var code = editor.getValue();
+        fetch("run/", { method:'POST', body: code})
+        .then(res => {
+	      // Handle response
+          res.text().then(function (text) { 
+            if (!text.includes("EOF")) {
+                try {
+                var canvas = document.getElementById('canvas');
+                var ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const json = JSON.parse(text);
+                if (json[0] != undefined) {
+                    var imageData = JSON.parse(json[0])
+                    if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
+                    clearPanels();
+                    canvas.width  = imageData.length;
+                    canvas.height = imageData.length; 
+                    canvas.style.display = "block";
+                        for(var y = 0; y < imageData.length; y++){
+                            for(var x = 0; x < imageData[y].length; x++){
+                               ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
+                               ctx.fillRect( x, y, 1, 1 );
+                            }
+                        }
+                    } else {
+                        activatePanel("Output");
+                        editorOutput.setValue(json[0]);
+                    }
+                }
+             } catch (e) {
+                activatePanel("Output");
+                editorOutput.setValue(text);
+             }
+            } 
+          });       
+        })
+        .catch(err => {
+	      // Handle error
+	      console.log('Error message: ', err);
+        });
     }
 }
 
@@ -181,11 +268,25 @@ const keyMap = {
         theme: "ambiance"
       });
 
-      var editor2 = CodeMirror.fromTextArea(document.getElementById("types"), {
+      var editorTypes = CodeMirror.fromTextArea(document.getElementById("types"), {
         lineNumbers: true,
         matchBrackets: true,
         theme: "ambiance"
       });
+
+      var editorCompiled = CodeMirror.fromTextArea(document.getElementById("compiled"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        theme: "ambiance"
+      });
+
+      var editorOutput = CodeMirror.fromTextArea(document.getElementById("out"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        theme: "ambiance"
+      });
+
+      const markers = []; 
 
       window.onload = function() {
 
@@ -194,15 +295,21 @@ const keyMap = {
       canvas.style.width  = '100%';
       canvas.style.height = '100%';
       var ctx = canvas.getContext('2d');
-    
-      const markers = [];  
+     
       editor.on("change", function () {
         var code = editor.getValue();
-        editor2.setValue("");
+        editorOutput.setValue("");
+        editorTypes.setValue("");
+        editorCompiled.setValue("");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.style.display = "none";
-        editor2.getWrapperElement().style.display = "block";
-        fetch("run/", { method:'POST', body: code})
+  
+        compileTo("/type", code, editorTypes);
+        compileTo("/compile", code, editorCompiled);
+      });
+    };
+
+    function compileTo(path, code, cm) {
+        fetch(path, { method:'POST', body: code})
         .then(res => {
 	      // Handle response
           res.text().then(function (text) { 
@@ -210,23 +317,8 @@ const keyMap = {
                 markers.forEach(marker => marker.clear());
                 const json = JSON.parse(text);
                 if (json[0] != undefined) {
-                    var imageData = JSON.parse(json[0])
-                    if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
-                    editor2.getWrapperElement().style.display = "none";
-                    canvas.width  = imageData.length;
-                    canvas.height = imageData.length; 
-                    canvas.style.display = "block";
-
-                        for(var y = 0; y < imageData.length; y++){
-                            for(var x = 0; x < imageData[y].length; x++){
-                               ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
-                               ctx.fillRect( x, y, 1, 1 );
-                            }
-                        }
-                    }
+                    cm.setValue(json[0]);
                 }
-
-
                 if (json[1] != undefined && Array.isArray(json[1])) {
                     const obj = json[1];
                     dictionary = {};
@@ -238,10 +330,10 @@ const keyMap = {
                                    sym.name.txt + 
                                    ")"] = sym;
                     });   
-                    editor2.setValue(json[0]);
+                    cm.setValue(json[0]);
                 } else {
                     const obj = json;
-                    editor2.setValue(JSON.stringify(obj));
+                    cm.setValue(JSON.stringify(obj));
                     const loc = obj.loc;
                     const from = { line: loc.line - 1, ch: loc.column - 1 };
                     const to = { line: loc.line - 1, ch: loc.column + loc.len - 1 };
@@ -255,8 +347,7 @@ const keyMap = {
 	      // Handle error
 	      console.log('Error message: ', err);
         });
-      });
-    };
+    }
     
 
 
