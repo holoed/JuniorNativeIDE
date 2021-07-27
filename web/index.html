@@ -65,6 +65,9 @@
 
 <div id="head" class="w3-bar w3-black" style="display: flex">
         <div class="w3-bar-item" style="flex-grow: 1;">Junior</div>
+        <div class="w3-bar-item" style="flex-grow: 0;">
+            <input id="autoRunCheckBox" type="checkbox" checked>auto run</input>
+        </div>
         <div style="text-align: right;">
             <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Typed')">Typed</button>
             <button class="w3-bar-item w3-button tablink"onclick="openTab(event, 'Compiled')">Compiled</button>
@@ -217,46 +220,8 @@ const keyMap = {
         cm.on("mousedown", removeTT);
     },
     "Ctrl-.": function (cm) {
-        var code = editor.getValue();
-        fetch("run/", { method:'POST', body: code})
-        .then(res => {
-	      // Handle response
-          res.text().then(function (text) { 
-            if (!text.includes("EOF")) {
-                try {
-                var canvas = document.getElementById('canvas');
-                var ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                const json = JSON.parse(text);
-                if (json[0] != undefined) {
-                    var imageData = JSON.parse(json[0])
-                    if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
-                    clearPanels();
-                    canvas.width  = imageData.length;
-                    canvas.height = imageData.length; 
-                    canvas.style.display = "block";
-                        for(var y = 0; y < imageData.length; y++){
-                            for(var x = 0; x < imageData[y].length; x++){
-                               ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
-                               ctx.fillRect( x, y, 1, 1 );
-                            }
-                        }
-                    } else {
-                        activatePanel("Output");
-                        editorOutput.setValue(json[0]);
-                    }
-                }
-             } catch (e) {
-                activatePanel("Output");
-                editorOutput.setValue(text);
-             }
-            } 
-          });       
-        })
-        .catch(err => {
-	      // Handle error
-	      console.log('Error message: ', err);
-        });
+        activatePanel("Output");
+        run();
     }
 }
 
@@ -303,6 +268,8 @@ const keyMap = {
         editorCompiled.setValue("");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
   
+        var autoRun = document.getElementById("autoRunCheckBox");
+        if (autoRun.checked) run();
         compileTo("/type", code, editorTypes);
         compileTo("/compile", code, editorCompiled);
       });
@@ -342,6 +309,47 @@ const keyMap = {
             }
           });
           
+        })
+        .catch(err => {
+	      // Handle error
+	      console.log('Error message: ', err);
+        });
+    }
+
+    function run() {
+        var code = editor.getValue();
+        fetch("run/", { method:'POST', body: code})
+        .then(res => {
+	      // Handle response
+          res.text().then(function (text) { 
+            if (!text.includes("EOF")) {
+                try {
+                var canvas = document.getElementById('canvas');
+                var ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const json = JSON.parse(text);
+                if (json[0] != undefined) {
+                    var imageData = JSON.parse(json[0])
+                    if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
+                    clearPanels();
+                    canvas.width  = imageData.length;
+                    canvas.height = imageData.length; 
+                    canvas.style.display = "block";
+                        for(var y = 0; y < imageData.length; y++){
+                            for(var x = 0; x < imageData[y].length; x++){
+                               ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
+                               ctx.fillRect( x, y, 1, 1 );
+                            }
+                        }
+                    } else {
+                        editorOutput.setValue(json[0]);
+                    }
+                }
+             } catch (e) {
+                editorOutput.setValue(text);
+             }
+            } 
+          });       
         })
         .catch(err => {
 	      // Handle error
