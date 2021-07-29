@@ -329,6 +329,7 @@ const keyMap = {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 const json = JSON.parse(text);
                 if (json[0] != undefined) {
+                    try {
                     var imageData = JSON.parse(json[0])
                     if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
                     clearPanels();
@@ -344,7 +345,10 @@ const keyMap = {
                     } else {
                         editorOutput.setValue(json[0]);
                     }
+                } catch (e) {
+                    editorOutput.setValue(json[0]);
                 }
+               }
              } catch (e) {
                 editorOutput.setValue(text);
              }
