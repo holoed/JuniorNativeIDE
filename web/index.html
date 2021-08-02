@@ -300,7 +300,7 @@ const keyMap = {
                     cm.setValue(json[0]);
                 } else {
                     const obj = json;
-                    cm.setValue(JSON.stringify(obj));
+                    cm.setValue(obj.txt);
                     const loc = obj.loc;
                     const from = { line: loc.line - 1, ch: loc.column - 1 };
                     const to = { line: loc.line - 1, ch: loc.column + loc.len - 1 };
