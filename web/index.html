@@ -10,6 +10,8 @@
 <script src="https://codemirror.net/3/addon/edit/matchbrackets.js"></script>
 <script src="https://codemirror.net/3/mode/haskell/haskell.js"></script>
 <script src="addons/hover/text-hover.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.js"></script>
+<script src="jslib.js"></script>
 <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
 <style>
 
@@ -72,6 +74,7 @@
             <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Typed')">Typed</button>
             <button class="w3-bar-item w3-button tablink"onclick="openTab(event, 'Compiled')">Compiled</button>
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Output')">Output</button>
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'OutputJs')">Output Js</button>
         </div>
 </div>
 
@@ -85,6 +88,7 @@
         <textarea id="compiled" name="compiled"></textarea>
         <textarea id="out" name="out"></textarea>
         <canvas id="canvas" style="display: none;"></canvas>
+        <textarea id="jsOut" name="jsOut"></textarea>
     </div>
 </div>
 
@@ -102,7 +106,9 @@ function activatePanel(name) {
    }
    if (name == "Output") { 
     editorOutput.getWrapperElement().style.display = "block";
-
+   }
+   if (name == "OutputJs") { 
+    editorJsOut.getWrapperElement().style.display = "block";
    }
 }
 
@@ -112,6 +118,7 @@ function clearPanels() {
   editorOutput.getWrapperElement().style.display = "none";
   editorCompiled.getWrapperElement().style.display = "none";
   editorTypes.getWrapperElement().style.display = "none";
+  editorJsOut.getWrapperElement().style.display = "none";
 }
 
 function openTab(evt, tabName) {
@@ -222,6 +229,10 @@ const keyMap = {
     "Ctrl-.": function (cm) {
         activatePanel("Output");
         run();
+    },
+    "Ctrl-,": function (cm) {
+        activatePanel("OutputJs");
+        compileToJs();
     }
 }
 
@@ -251,6 +262,12 @@ const keyMap = {
         theme: "ambiance"
       });
 
+      var editorJsOut = CodeMirror.fromTextArea(document.getElementById("jsOut"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        theme: "ambiance"
+      });
+
       const markers = []; 
 
       window.onload = function() {
@@ -263,6 +280,7 @@ const keyMap = {
      
       editor.on("change", function () {
         var code = editor.getValue();
+        editorJsOut.setValue("");
         editorOutput.setValue("");
         editorTypes.setValue("");
         editorCompiled.setValue("");
@@ -272,6 +290,7 @@ const keyMap = {
         if (autoRun.checked) run();
         compileTo("/type", code, editorTypes);
         compileTo("/compile", code, editorCompiled);
+        compileToJs();
       });
     };
 
@@ -352,6 +371,35 @@ const keyMap = {
              } catch (e) {
                 editorOutput.setValue(text);
              }
+            } 
+          });       
+        })
+        .catch(err => {
+	      // Handle error
+	      console.log('Error message: ', err);
+        });
+    }
+
+    function compileToJs() {
+        var code = editor.getValue();
+        fetch("compileToJs/", { method:'POST', body: code})
+        .then(res => {
+	      // Handle response
+          res.text().then(function (text) { 
+            if (!text.includes("EOF")) {
+                try {
+                   const json = JSON.parse(text);
+                   if (json[0] != undefined) {
+                    // var ret = "" + eval(json[0] + "\n\nmain");
+                    // editorJsOut.setValue(ret);
+                     editorJsOut.setValue(
+                        window.js_beautify(json[0], window.js_beautify.defaultOptions())
+                     );
+                   } else 
+                     editorJsOut.setValue(text);
+                } catch (e) {
+                     editorJsOut.setValue(text);
+                }
             } 
           });       
         })

@@ -28,7 +28,15 @@ router.post('/run', textParser, function(req, res) {
     , url: url + "/run", body: req.body }
     , function(error, response, body){
         res.send(body);
-    });    
+    }); 
+}); 
+    
+router.post('/compileToJs', textParser, function(req, res) {
+    request.post({ headers: {'content-type' : 'text/plain'}
+    , url: url + "/compileToJs", body: req.body }
+    , function(error, response, body){
+        res.send(body);
+    });  
 });
 
 module.exports = router;
