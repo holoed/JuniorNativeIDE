@@ -4,6 +4,14 @@ var eqInt = {
   }}
 }
 
+var ordInt = {
+  ">": function(x) { return function(y) { return x > y }},
+  "<": function(x) { return function(y) { return x < y }},
+  ">=": function(x) { return function(y) { return x >= y }},
+  "<=": function(x) { return function(y) { return x <= y }},
+  "==": eqInt["=="]
+}
+
 var numInt = {
   "+": function(x) { return function(y) { return x + y; }},
   "*": function(x) { return function(y) { return x * y; }},
@@ -47,4 +55,32 @@ var __eqeq = function(inst) {
       return inst["=="](x)(y)
     }
   }
+}
+
+var __gt = function(inst) {
+  return function(x) {
+    return function(y) {
+      return inst[">"](x)(y)
+    }
+  }
+}
+
+var __colon = function(x) {
+  return function(xs) {
+    var ys = xs.slice();
+    ys.unshift(x);
+    return ys;
+  }
+}
+
+var isEmpty = function(xs) {
+  return xs.length == 0;
+}
+
+var head = function(xs) {
+  return xs[0];
+}
+
+var tail = function(xs) {
+  return xs.slice(1);
 }
