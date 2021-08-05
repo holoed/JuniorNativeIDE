@@ -397,7 +397,7 @@ const keyMap = {
 
     function runJs(jsCode) {
         try {
-          var ret = "" + eval(jsCode + "\n\nmain");
+          var ret = JSON.stringify(eval(jsCode + "\n\nmain"));
           editorOutputJs.setValue(ret);
         } catch (e) {
           editorOutputJs.setValue("" + e);
