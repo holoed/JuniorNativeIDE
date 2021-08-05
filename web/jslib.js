@@ -202,3 +202,18 @@ var fst = function([x,y]){
 var snd = function([x,y]){
   return y;
 }
+
+var display = function(imageData) {
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  canvas.width  = imageData.length;
+  canvas.height = imageData.length; 
+  canvas.style.display = "block";
+      for(var y = 0; y < imageData.length; y++){
+          for(var x = 0; x < imageData[y].length; x++){
+             ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
+             ctx.fillRect( x, y, 1, 1 );
+          }
+      }
+}
