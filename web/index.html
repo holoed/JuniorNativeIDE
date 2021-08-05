@@ -73,7 +73,8 @@
         <div style="text-align: right;">
             <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Typed')">Typed</button>
             <button class="w3-bar-item w3-button tablink"onclick="openTab(event, 'Compiled')">Compiled</button>
-            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Output')">Output</button>
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Output')">Output Interpreter</button>
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'CompiledJs')">Compiled Js</button>
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'OutputJs')">Output Js</button>
         </div>
 </div>
@@ -88,7 +89,8 @@
         <textarea id="compiled" name="compiled"></textarea>
         <textarea id="out" name="out"></textarea>
         <canvas id="canvas" style="display: none;"></canvas>
-        <textarea id="jsOut" name="jsOut"></textarea>
+        <textarea id="compiledJs" name="compiledJs"></textarea>
+        <textarea id="outputJs" name="outputJs"></textarea>
     </div>
 </div>
 
@@ -107,8 +109,11 @@ function activatePanel(name) {
    if (name == "Output") { 
     editorOutput.getWrapperElement().style.display = "block";
    }
+   if (name == "CompiledJs") { 
+    editorCompiledJs.getWrapperElement().style.display = "block";
+   }
    if (name == "OutputJs") { 
-    editorJsOut.getWrapperElement().style.display = "block";
+    editorOutputJs.getWrapperElement().style.display = "block";
    }
 }
 
@@ -118,7 +123,8 @@ function clearPanels() {
   editorOutput.getWrapperElement().style.display = "none";
   editorCompiled.getWrapperElement().style.display = "none";
   editorTypes.getWrapperElement().style.display = "none";
-  editorJsOut.getWrapperElement().style.display = "none";
+  editorCompiledJs.getWrapperElement().style.display = "none";
+  editorOutputJs.getWrapperElement().style.display = "none";
 }
 
 function openTab(evt, tabName) {
@@ -231,7 +237,7 @@ const keyMap = {
         run();
     },
     "Ctrl-,": function (cm) {
-        activatePanel("OutputJs");
+        activatePanel("CompiledJs");
         compileToJs();
     }
 }
@@ -262,7 +268,13 @@ const keyMap = {
         theme: "ambiance"
       });
 
-      var editorJsOut = CodeMirror.fromTextArea(document.getElementById("jsOut"), {
+      var editorCompiledJs = CodeMirror.fromTextArea(document.getElementById("compiledJs"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        theme: "ambiance"
+      });
+
+      var editorOutputJs = CodeMirror.fromTextArea(document.getElementById("outputJs"), {
         lineNumbers: true,
         matchBrackets: true,
         theme: "ambiance"
@@ -280,7 +292,8 @@ const keyMap = {
      
       editor.on("change", function () {
         var code = editor.getValue();
-        editorJsOut.setValue("");
+        editorOutputJs.setValue("");
+        editorCompiledJs.setValue("");
         editorOutput.setValue("");
         editorTypes.setValue("");
         editorCompiled.setValue("");
@@ -380,6 +393,15 @@ const keyMap = {
         });
     }
 
+    function runJs(jsCode) {
+        try {
+          var ret = "" + eval(jsCode + "\n\nmain");
+          editorOutputJs.setValue(ret);
+        } catch (e) {
+          editorOutputJs.setValue("" + e);
+        }
+    }
+
     function compileToJs() {
         var code = editor.getValue();
         fetch("compileToJs/", { method:'POST', body: code})
@@ -390,15 +412,14 @@ const keyMap = {
                 try {
                    const json = JSON.parse(text);
                    if (json[0] != undefined) {
-                    // var ret = "" + eval(json[0] + "\n\nmain");
-                    // editorJsOut.setValue(ret);
-                     editorJsOut.setValue(
+                     runJs(json[0]);
+                     editorCompiledJs.setValue(
                         window.js_beautify(json[0], window.js_beautify.defaultOptions())
                      );
                    } else 
-                     editorJsOut.setValue(text);
+                     editorCompiledJs.setValue(text);
                 } catch (e) {
-                     editorJsOut.setValue(text);
+                     editorCompiledJs.setValue(text);
                 }
             } 
           });       
