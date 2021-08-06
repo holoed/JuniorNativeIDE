@@ -10,6 +10,12 @@ var eqDouble = {
   }}
 }
 
+var eqChar = {
+  "==": function(x) { return function(y) { 
+      return x == y; 
+  }}
+}
+
 var ordInt = {
   ">": function(x) { return function(y) { return x > y }},
   "<": function(x) { return function(y) { return x < y }},
@@ -216,4 +222,48 @@ var display = function(imageData) {
              ctx.fillRect( x, y, 1, 1 );
           }
       }
+}
+
+var mkParser = function(f) {
+  return f;
+}
+
+var runParser = function(m) {
+  return m;
+}
+
+var toCharList = function(s) {
+  return Array.from(s);
+}
+
+var applicativeParser = {
+  "pure": function(x) {
+    return function(inp) {
+      return [[x, inp]];
+    }
+  }
+}
+
+var monadParser = {
+  "bind": function(m) {
+    return function(f){
+      return function(inp){
+        return Array.prototype.concat.apply([], m(inp).map(([x,rest]) => f(x)(rest)));
+      }
+    }
+  }
+}
+
+var bind = function(inst) {
+  return function(m) {
+    return function(f) {
+      return inst["bind"](m)(f);
+    }
+  }
+}
+
+var pure = function(inst) {
+  return function(x) {
+    return inst["pure"](x);
+  }
 }
