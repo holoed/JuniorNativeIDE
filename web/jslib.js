@@ -32,6 +32,14 @@ var ordDouble = {
   "==": eqDouble["=="]
 }
 
+var ordChar = {
+  ">": function(x) { return function(y) { return x > y }},
+  "<": function(x) { return function(y) { return x < y }},
+  ">=": function(x) { return function(y) { return x >= y }},
+  "<=": function(x) { return function(y) { return x <= y }},
+  "==": eqChar["=="]
+}
+
 var numInt = {
   "+": function(x) { return function(y) { return x + y; }},
   "*": function(x) { return function(y) { return x * y; }},
@@ -145,18 +153,32 @@ var __gt = function(inst) {
   }
 }
 
+var __gteq = function(inst) {
+  return function(x) {
+    return function(y) {
+      return inst[">="](x)(y)
+    }
+  }
+}
+
+var __lteq = function(inst) {
+  return function(x) {
+    return function(y) {
+      return inst["<="](x)(y)
+    }
+  }
+}
+
 var __or = function(x) {
     return function(y) {
       return x || y;
     }
 }
 
-var __and = function(inst) {
-  return function(x) {
+var __and = function(x) {
     return function(y) {
       return x && y;
     }
-  }
 }
 
 var __colon = function(x) {
@@ -245,11 +267,25 @@ var applicativeParser = {
 }
 
 var monadParser = {
+  "pure": applicativeParser["pure"],
   "bind": function(m) {
     return function(f){
       return function(inp){
         return Array.prototype.concat.apply([], m(inp).map(([x,rest]) => f(x)(rest)));
       }
+    }
+  }
+}
+
+var applicativeList = {
+  "pure": function(x) { return [x]; }
+}
+
+var monadList = {
+  "pure": applicativeList["pure"],
+  "bind": function(xs) {
+    return function(f){
+      return Array.prototype.concat.apply([], xs.map(x => f(x)));
     }
   }
 }
@@ -266,4 +302,8 @@ var pure = function(inst) {
   return function(x) {
     return inst["pure"](x);
   }
+}
+
+var ord = function(ch) {
+  return ch.charCodeAt(0);
 }
