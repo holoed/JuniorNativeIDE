@@ -1,22 +1,24 @@
-var eqInt = {
+"use strict";
+
+const eqInt = {
   "==": function(x) { return function(y) { 
       return x == y; 
   }}
 }
 
-var eqDouble = {
+const eqDouble = {
   "==": function(x) { return function(y) { 
       return x == y; 
   }}
 }
 
-var eqChar = {
+const eqChar = {
   "==": function(x) { return function(y) { 
       return x == y; 
   }}
 }
 
-var ordInt = {
+const ordInt = {
   ">": function(x) { return function(y) { return x > y }},
   "<": function(x) { return function(y) { return x < y }},
   ">=": function(x) { return function(y) { return x >= y }},
@@ -24,7 +26,7 @@ var ordInt = {
   "==": eqInt["=="]
 }
 
-var ordDouble = {
+const ordDouble = {
   ">": function(x) { return function(y) { return x > y }},
   "<": function(x) { return function(y) { return x < y }},
   ">=": function(x) { return function(y) { return x >= y }},
@@ -32,7 +34,7 @@ var ordDouble = {
   "==": eqDouble["=="]
 }
 
-var ordChar = {
+const ordChar = {
   ">": function(x) { return function(y) { return x > y }},
   "<": function(x) { return function(y) { return x < y }},
   ">=": function(x) { return function(y) { return x >= y }},
@@ -40,14 +42,14 @@ var ordChar = {
   "==": eqChar["=="]
 }
 
-var numInt = {
+const numInt = {
   "+": function(x) { return function(y) { return x + y; }},
   "*": function(x) { return function(y) { return x * y; }},
   "-": function(x) { return function(y) { return x - y; }},
   "fromInteger": function(x) { return x; }
 }
 
-var fractionalInt = {
+const fractionalInt = {
   "+": numInt["+"],
   "*": numInt["*"],
   "-": numInt["-"],
@@ -56,14 +58,14 @@ var fractionalInt = {
   "fromRational": function(x) { return Math.floor(x); }
 }
 
-var numDouble = {
+const numDouble = {
   "+": function(x) { return function(y) { return x + y; }},
   "*": function(x) { return function(y) { return x * y; }},
   "-": function(x) { return function(y) { return x - y; }},
   "fromInteger": function(x) { return x; }
 }
 
-var fractionalDouble = {
+const fractionalDouble = {
   "+": numDouble["+"],
   "*": numDouble["*"],
   "-": numDouble["-"],
@@ -72,20 +74,20 @@ var fractionalDouble = {
   "fromRational": function(x) { return x; }
 }
 
-var floatingDouble = {
+const floatingDouble = {
   "cos": function(x) { return Math.cos(x); },
   "sin": function(x) { return Math.sin(x); }
 }
 
-var numTuple2 = function(instA) {
+const numTuple2 = function(instA) {
   return function(instB) {
     return {
       "+": function([x1, y1]){ return function([x2, y2]) { return [instA["+"](x1)(x2), instB["+"](y1)(y2)]  } },
       "-": function([x1, y1]){ return function([x2, y2]) { return [instA["-"](x1)(x2), instB["-"](y1)(y2)]  } },
       "*": function([x1, y1]){ return function([x2, y2]) { 
-        var mul = instA["*"];
-        var sub = instA["-"];
-        var add = instA["+"];
+        const mul = instA["*"];
+        const sub = instA["-"];
+        const add = instA["+"];
         return [sub(mul(x1)(x2))(mul(y1)(y2)), add(mul(x1)(y2))(mul(y1)(x2))];
       } 
     }
@@ -93,19 +95,19 @@ var numTuple2 = function(instA) {
   }
 }
 
-var fromInteger = function(inst) {
+const fromInteger = function(inst) {
   return function(x) {
      return inst["fromInteger"](x);
   }
 }
 
-var fromRational = function(inst) {
+const fromRational = function(inst) {
   return function(x) {
      return inst["fromRational"](x);
   }
 }
 
-var __add = function(inst) {
+const __add = function(inst) {
   return function(x) {
     return function(y) {
       return inst["+"](x)(y)
@@ -113,7 +115,7 @@ var __add = function(inst) {
   }
 }
 
-var __mul = function(inst) {
+const __mul = function(inst) {
   return function(x) {
     return function(y) {
       return inst["*"](x)(y)
@@ -121,7 +123,7 @@ var __mul = function(inst) {
   }
 }
 
-var __sub = function(inst) {
+const __sub = function(inst) {
   return function(x) {
     return function(y) {
       return inst["-"](x)(y)
@@ -129,7 +131,7 @@ var __sub = function(inst) {
   }
 }
 
-var __div = function(inst) {
+const __div = function(inst) {
   return function(x) {
     return function(y) {
       return inst["/"](x)(y)
@@ -137,7 +139,7 @@ var __div = function(inst) {
   }
 }
 
-var __eqeq = function(inst) {
+const __eqeq = function(inst) {
   return function(x) {
     return function(y) {
       return inst["=="](x)(y)
@@ -145,7 +147,7 @@ var __eqeq = function(inst) {
   }
 }
 
-var __gt = function(inst) {
+const __gt = function(inst) {
   return function(x) {
     return function(y) {
       return inst[">"](x)(y)
@@ -153,7 +155,7 @@ var __gt = function(inst) {
   }
 }
 
-var __gteq = function(inst) {
+const __gteq = function(inst) {
   return function(x) {
     return function(y) {
       return inst[">="](x)(y)
@@ -161,7 +163,7 @@ var __gteq = function(inst) {
   }
 }
 
-var __lteq = function(inst) {
+const __lteq = function(inst) {
   return function(x) {
     return function(y) {
       return inst["<="](x)(y)
@@ -169,39 +171,39 @@ var __lteq = function(inst) {
   }
 }
 
-var __or = function(x) {
+const __or = function(x) {
     return function(y) {
       return x || y;
     }
 }
 
-var __and = function(x) {
+const __and = function(x) {
     return function(y) {
       return x && y;
     }
 }
 
-var __colon = function(x) {
+const __colon = function(x) {
   return function(xs) {
-    var ys = xs.slice();
+    const ys = xs.slice();
     ys.unshift(x);
     return ys;
   }
 }
 
-var isEmpty = function(xs) {
+const isEmpty = function(xs) {
   return xs.length == 0;
 }
 
-var head = function(xs) {
+const head = function(xs) {
   return xs[0];
 }
 
-var tail = function(xs) {
+const tail = function(xs) {
   return xs.slice(1);
 }
 
-var __dot = function(f) {
+const __dot = function(f) {
   return function(g) {
     return function(x) {
       return f(g(x));
@@ -209,56 +211,58 @@ var __dot = function(f) {
   }
 }
 
-var toDouble = function(x) {
+const toDouble = function(x) {
   return x + 0.0;
 }
 
-var truncate = function(x) {
+const truncate = function(x) {
   return Math.floor(x);
 }
 
-var cos = function(inst) {
+const cos = function(inst) {
   return function(x) {
     return inst["cos"](x);
   }
 }
 
-var fst = function([x,y]){
+const fst = function([x,y]){
   return x;
 }
 
-var snd = function([x,y]){
+const snd = function([x,y]){
   return y;
 }
 
-var display = function(imageData) {
-  var canvas = document.getElementById('canvas');
-  var ctx = canvas.getContext('2d');
+const display = function(imageData) {
+  clearPanels();
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   canvas.width  = imageData.length;
   canvas.height = imageData.length; 
   canvas.style.display = "block";
-      for(var y = 0; y < imageData.length; y++){
-          for(var x = 0; x < imageData[y].length; x++){
+      for(let y = 0; y < imageData.length; y++){
+          for(let x = 0; x < imageData[y].length; x++){
              ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
              ctx.fillRect( x, y, 1, 1 );
           }
       }
+  return imageData;
 }
 
-var mkParser = function(f) {
+const mkParser = function(f) {
   return f;
 }
 
-var runParser = function(m) {
+const runParser = function(m) {
   return m;
 }
 
-var toCharList = function(s) {
+const toCharList = function(s) {
   return Array.from(s);
 }
 
-var applicativeParser = {
+const applicativeParser = {
   "pure": function(x) {
     return function(inp) {
       return [[x, inp]];
@@ -266,7 +270,7 @@ var applicativeParser = {
   }
 }
 
-var monadParser = {
+const monadParser = {
   "pure": applicativeParser["pure"],
   "bind": function(m) {
     return function(f){
@@ -277,11 +281,11 @@ var monadParser = {
   }
 }
 
-var applicativeList = {
+const applicativeList = {
   "pure": function(x) { return [x]; }
 }
 
-var monadList = {
+const monadList = {
   "pure": applicativeList["pure"],
   "bind": function(xs) {
     return function(f){
@@ -290,7 +294,7 @@ var monadList = {
   }
 }
 
-var bind = function(inst) {
+const bind = function(inst) {
   return function(m) {
     return function(f) {
       return inst["bind"](m)(f);
@@ -298,12 +302,12 @@ var bind = function(inst) {
   }
 }
 
-var pure = function(inst) {
+const pure = function(inst) {
   return function(x) {
     return inst["pure"](x);
   }
 }
 
-var ord = function(ch) {
+const ord = function(ch) {
   return ch.charCodeAt(0);
 }
