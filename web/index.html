@@ -68,7 +68,10 @@
 <div id="head" class="w3-bar w3-black" style="display: flex; height:38px">
         <div class="w3-bar-item" style="flex-grow: 1;">Junior</div>
         <div class="w3-bar-item" style="flex-grow: 0;">
-            <input id="autoRunCheckBox" type="checkbox" checked>auto run</input>
+            <input id="autoRunCheckBoxInterpreter" type="checkbox">auto run interpreter</input>
+        </div>
+        <div class="w3-bar-item" style="flex-grow: 0;">
+            <input id="autoRunCheckBoxJavaScript" type="checkbox">auto run js</input>
         </div>
         <div style="text-align: right;">
             <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Typed')">Typed</button>
@@ -301,7 +304,7 @@ const keyMap = {
         editorCompiled.setValue("");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-        var autoRun = document.getElementById("autoRunCheckBox");
+        var autoRun = document.getElementById("autoRunCheckBoxInterpreter");
         if (autoRun.checked) run();
         compileTo("/type", code, editorTypes);
         compileTo("/compile", code, editorCompiled);
@@ -417,7 +420,8 @@ const keyMap = {
                 try {
                    const json = JSON.parse(text);
                    if (json[0] != undefined) {
-                     runJs(json[0]);
+                     var autoRun = document.getElementById("autoRunCheckBoxJavaScript");
+                     if (autoRun.checked) runJs(json[0]);
                      editorCompiledJs.setValue(
                         window.js_beautify(json[0], window.js_beautify.defaultOptions())
                      );
