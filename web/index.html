@@ -367,7 +367,7 @@ const keyMap = {
                 const json = JSON.parse(text);
                 if (json[0] != undefined) {
                     try {
-                    var imageData = JSON.parse(json[0])
+                    var imageData = JSON.parse(json[0].replaceAll("(", "[").replaceAll(")", "]"));
                     if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
                     clearPanels();
                     canvas.width  = imageData.length;
