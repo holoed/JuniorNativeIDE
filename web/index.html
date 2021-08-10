@@ -67,8 +67,9 @@
 
 <div id="head" class="w3-bar w3-black" style="display: flex; height:38px">
         <div class="w3-bar-item" style="flex-grow: 1;">Junior</div>
+        <div class="w3-bar-item"><p id="bench"></p></div>
         <div class="w3-bar-item" style="flex-grow: 0;">
-            <input id="autoRunCheckBoxInterpreter" type="checkbox">auto run interpreter</input>
+            <input id="autoRunCheckBoxInterpreter" type="checkbox">auto run interp</input>
         </div>
         <div class="w3-bar-item" style="flex-grow: 0;">
             <input id="autoRunCheckBoxJavaScript" type="checkbox">auto run js</input>
@@ -76,7 +77,7 @@
         <div style="text-align: right;">
             <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Typed')">Typed</button>
             <button class="w3-bar-item w3-button tablink"onclick="openTab(event, 'Compiled')">Compiled</button>
-            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Output')">Output Interpreter</button>
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Output')">Output Interp</button>
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'CompiledJs')">Compiled Js</button>
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'OutputJs')">Output Js</button>
         </div>
@@ -398,10 +399,30 @@ const keyMap = {
         });
     }
 
+    function msToTime(s) {
+      // Pad to 2 or 3 digits, default is 2
+      function pad(n, z) {
+        z = z || 2;
+        return ('00' + n).slice(-z);
+      }
+
+      var ms = s % 1000;
+      s = (s - ms) / 1000;
+      var secs = s % 60;
+      s = (s - secs) / 60;
+      var mins = s % 60;
+      var hrs = (s - mins) / 60;
+
+      return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + pad(ms, 3);
+      }
+
     function runJs(jsCode) {
         try {
           var script = "(function() {\n\n" + jsCode.replace("const main = ", "return ") + "\n\n})();"
+          const t0 = performance.now();
           var ret = JSON.stringify(eval(script));
+          const t1 = performance.now();
+          document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
           editorOutputJs.setValue(ret);
         } catch (e) {
           var canvas = document.getElementById('canvas');
