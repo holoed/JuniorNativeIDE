@@ -11,7 +11,6 @@
 <script src="https://codemirror.net/3/mode/haskell/haskell.js"></script>
 <script src="addons/hover/text-hover.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.js"></script>
-<script src="jslib.js"></script>
 <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
 <style>
 
@@ -417,18 +416,26 @@ const keyMap = {
       }
 
     function runJs(jsCode) {
-        try {
-          var script = "(function() {\n\n" + jsCode.replace("const main = ", "return ") + "\n\n})();"
-          const t0 = performance.now();
-          var ret = JSON.stringify(eval(script));
-          const t1 = performance.now();
-          document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
-          editorOutputJs.setValue(ret);
-        } catch (e) {
-          var canvas = document.getElementById('canvas');
-          canvas.style.display = "none";
-          editorOutputJs.setValue("" + e);
-        }
+      fetch("libJs/", { method: 'GET' })
+      .then(res => { 
+         // Handle response
+         res.text().then(function (libCodeJson) { 
+          try {
+            var script = "(function() {\n\n" + JSON.parse(libCodeJson) + 
+                                      "\n\n" + jsCode.replace("const main = ", "return ") + 
+                                      "\n\n})();"
+            const t0 = performance.now();
+            var ret = JSON.stringify(eval(script));
+            const t1 = performance.now();
+            document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
+            editorOutputJs.setValue(ret);
+          } catch (e) {
+            var canvas = document.getElementById('canvas');
+            canvas.style.display = "none";
+            editorOutputJs.setValue("" + e);
+          }
+        });
+      });
     }
 
     function compileToJs() {

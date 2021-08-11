@@ -39,6 +39,14 @@ router.post('/compileToJs', textParser, function(req, res) {
     });  
 });
 
+router.get('/libJs', textParser, function(req, res) {
+    request.get({ headers: {'content-type' : 'text/plain'}
+    , url: url + "/libJs" }
+    , function(error, response, body){
+        res.send(body);
+    });  
+});
+
 module.exports = router;
 
 
