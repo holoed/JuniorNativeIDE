@@ -8,6 +8,8 @@
 <link rel="stylesheet" href="addons/hover/text-hover.css">
 <script src="https://codemirror.net/3/lib/codemirror.js"></script>
 <script src="https://codemirror.net/3/addon/edit/matchbrackets.js"></script>
+<script src="https://codemirror.net/3/addon/comment/comment.js"></script>
+<script src="https://codemirror.net/3/addon/comment/continuecomment.js"></script>
 <script src="https://codemirror.net/3/mode/haskell/haskell.js"></script>
 <script src="addons/hover/text-hover.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.js"></script>
@@ -241,7 +243,18 @@ const keyMap = {
     "Ctrl-.": function (cm) {
         if (currentTabName == "Output") run();
         if (currentTabName == "OutputJs") compileToJs();
-    }
+    },
+    "Ctrl-/": function(cm) {
+      CodeMirror.commands.toggleComment(cm, { commentBlankLines:true, fillLines: true });
+    },
+    "Tab": editor => {
+      if (editor.somethingSelected()) {
+        editor.indentSelection("add");
+      } else {
+        editor.replaceSelection(editor.getOption("indentWithTabs")? "\t" :
+          Array(editor.getOption("indentUnit") + 1).join(" "), "end", "+input");
+      }
+    }    
 }
 
 
@@ -338,9 +351,11 @@ const keyMap = {
                     const obj = json;
                     cm.setValue(obj.txt);
                     const loc = obj.loc;
+                    if (loc != null) {
                     const from = { line: loc.line - 1, ch: loc.column - 1 };
                     const to = { line: loc.line - 1, ch: loc.column + loc.len - 1 };
                     markers.push(editor.markText(from, to, { className: 'CodeMirror-lint-mark CodeMirror-lint-mark-error', title: obj.txt}));
+                    }
                 }
             }
           });
