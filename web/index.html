@@ -254,6 +254,18 @@ const keyMap = {
         editor.replaceSelection(editor.getOption("indentWithTabs")? "\t" :
           Array(editor.getOption("indentUnit") + 1).join(" "), "end", "+input");
       }
+    },
+    "Ctrl-D": editor => {
+      editor.operation(() => {
+        var current_cursor = editor.doc.getCursor();
+        var line_content = editor.doc.getLine(current_cursor.line);
+        CodeMirror.commands.goLineEnd(editor);
+        CodeMirror.commands.newlineAndIndent(editor);
+        CodeMirror.commands.goLineLeft(editor);
+        editor.doc.replaceSelection(line_content);
+        editor.doc.setCursor(current_cursor.line + 1, current_cursor.ch);
+        editor.scrollIntoView();
+      })
     }    
 }
 
