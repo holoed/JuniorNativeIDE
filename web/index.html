@@ -392,9 +392,10 @@ const keyMap = {
                 var ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 const json = JSON.parse(text);
-                if (json[0] != undefined) {
+                if (json[0] != undefined && json[0].startsWith("{\"image\":")) {
                     try {
-                    var imageData = JSON.parse(json[0].replaceAll("(", "[").replaceAll(")", "]"));
+                    var parsedRet = JSON.parse(json[0].replaceAll("(", "[").replaceAll(")", "]"));
+                    var imageData = parsedRet["image"];
                     if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
                     clearPanels();
                     canvas.width  = imageData.length;
@@ -407,13 +408,19 @@ const keyMap = {
                             }
                         }
                     } else {
+                        editorOutput.getWrapperElement().style.display = "block";
                         editorOutput.setValue(json[0]);
                     }
                 } catch (e) {
+                    editorOutput.getWrapperElement().style.display = "block";
                     editorOutput.setValue(json[0]);
                 }
+               } else {
+                editorOutput.getWrapperElement().style.display = "block"; 
+                editorOutput.setValue(json[0]);
                }
              } catch (e) {
+                editorOutput.getWrapperElement().style.display = "block";
                 editorOutput.setValue(text);
              }
             } 
@@ -444,6 +451,7 @@ const keyMap = {
 
     function runJs(jsCode) {
       if (currentTabName != "OutputJs") return;
+      editorOutputJs.getWrapperElement().style.display = "block";
       fetch("libJs/", { method: 'GET' })
       .then(res => { 
          // Handle response
