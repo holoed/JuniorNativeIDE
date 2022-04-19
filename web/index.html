@@ -466,7 +466,7 @@ const keyMap = {
             var ret = JSON.stringify(eval(script));
             const t1 = performance.now();
             document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
-            editorOutputJs.setValue(ret);
+            editorOutputJs.setValue(ret == undefined ? "()" : ret);
           } catch (e) {
             var canvas = document.getElementById('canvas');
             canvas.style.display = "none";
