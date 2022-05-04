@@ -29,7 +29,7 @@
 
 .splitter {
     width: 100%;
-    height: 96%;
+    height: 95%;
     display: flex;
 }
 
@@ -39,7 +39,7 @@
     background-repeat: no-repeat;
     background-position: center;
     width: 10px;
-    height: 96%;
+    height: 100%;
 
     /* Prevent the browser's built-in drag from interfering */
     -moz-user-select: none;
@@ -49,13 +49,13 @@
 
 #first {
     width:50%;
-    height: 96%;
+    height: 100%;
     min-width: 10px;
 }
 
 #second {
     width: 50%;
-    height: 96%;
+    height: 100%;
     min-width: 10px;
 }
 
@@ -66,21 +66,65 @@
 
 .CodeMirror { height: 100%; }
 
+.dropbtn {
+  background-color: #3498DB;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.dropbtn:hover, .dropbtn:focus {
+  background-color: #2980B9;
+}
+
+.dropdown {
+  position: relative;
+  display: block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  overflow: auto;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 6px 8px;
+  text-decoration: none;
+  display: block;
+  z-index: 10;
+}
+
+.dropdown a:hover {background-color: #ddd;}
+.dropdown-content a:hover {background-color: #ddd;}
+
+
 </style></head><body style="background-color: black;">
 
 <div id="head" class="w3-bar w3-black" style="display: flex; height:38px">
-        <div class="w3-bar-item" style="flex-grow: 1;">Junior</div>
-        <div class="w3-bar-item"><p id="bench"></p></div>
-        <div class="w3-bar-item" style="flex-grow: 0;">
-            <input id="autoRunCheckBoxInterpreter" type="checkbox">auto run interp</input>
+        <div class="w3-bar-item" >Junior</div>
+        <div class="w3-bar-item">
+            <button onclick="myFunction()" class="dropbtn">Examples</button>
+            <div id="myDropdown" class="dropdown-content">
+              <a onclick="openExample(event)"></a>
+              <a onclick="openExample('duality_of_sorts.jnr')">Duality Of Sorts</a>
+              <a onclick="openExample('mandelbrot.jnr')">Mandelbrot</a>
+              <a onclick="openExample('calculator.jnr')">Calculator</a>
+            </div>
         </div>
+        <div class="w3-bar-item" style="flex-grow: 1;"></div>
+        <div class="w3-bar-item"><p id="bench"></p></div>
         <div class="w3-bar-item" style="flex-grow: 0;">
             <input id="autoRunCheckBoxJavaScript" type="checkbox">auto run js</input>
         </div>
         <div style="text-align: right;">
             <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Typed')">Typed</button>
             <button class="w3-bar-item w3-button tablink"onclick="openTab(event, 'Compiled')">Compiled</button>
-            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Output')">OutputInterp</button>
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'CompiledJs')">CompiledJs</button>
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'OutputJs')">OutputJs</button>
         </div>
@@ -102,6 +146,39 @@
 </div>
 
 <script>
+
+function openExample(name) {
+  myFunction();
+  fetch('/examples/' + name)
+    .then(response => response.text())
+    .then(data => {
+      const editor = document.querySelector('#code').nextSibling.CodeMirror;
+      editor.setValue(data);
+    });
+}
+
+function toggleDisplay(style) {
+  if (style.display == "none")
+    style.display = "block";
+  else
+    style.display = "none";
+}
+/* When the user clicks on the button, 
+toggle between hiding and showing the dropdown content */
+function myFunction() {
+  const style = document.getElementById("myDropdown").style;
+  toggleDisplay(style);
+}
+
+// Close the dropdown if the user clicks outside of it
+window.onclick = function(event) {
+  if (!event.target.matches('.dropbtn')) {
+    const style = document.getElementById("myDropdown").style;
+    style.display = "none"
+  }
+}
+
+
 var currentTabName = "";
 function activatePanel(name) {
    clearPanels();
@@ -243,7 +320,6 @@ const keyMap = {
         cm.on("mousedown", removeTT);
     },
     "Ctrl-.": function (cm) {
-        if (currentTabName == "Output") run();
         if (currentTabName == "OutputJs") compileToJs();
     },
     "Ctrl-/": function(cm) {
@@ -329,9 +405,8 @@ const keyMap = {
         editorTypes.setValue("");
         editorCompiled.setValue("");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = "none";
   
-        var autoRun = document.getElementById("autoRunCheckBoxInterpreter");
-        if (autoRun.checked) run();
         compileTo("/type", code, editorTypes);
         compileTo("/compile", code, editorCompiled);
         compileToJs();
@@ -374,59 +449,6 @@ const keyMap = {
             }
           });
           
-        })
-        .catch(err => {
-	      // Handle error
-	      console.log('Error message: ', err);
-        });
-    }
-
-    function run() {
-      if (currentTabName != "Output") return;
-        var code = editor.getValue();
-        fetch("run/", { method:'POST', body: code})
-        .then(res => {
-	      // Handle response
-          res.text().then(function (text) { 
-            if (!text.includes("EOF")) {
-                try {
-                var canvas = document.getElementById('canvas');
-                var ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                const json = JSON.parse(text);
-                if (json[0] != undefined && json[0].startsWith("{\"image\":")) {
-                    try {
-                    var parsedRet = JSON.parse(json[0].replaceAll("(", "[").replaceAll(")", "]"));
-                    var imageData = parsedRet["image"];
-                    if (Array.isArray(imageData) && Array.isArray(imageData[0])) {
-                    clearPanels();
-                    canvas.width  = imageData.length;
-                    canvas.height = imageData.length; 
-                    canvas.style.display = "block";
-                        for(var y = 0; y < imageData.length; y++){
-                            for(var x = 0; x < imageData[y].length; x++){
-                               ctx.fillStyle = `rgb(${imageData[y][x][0]}, ${imageData[y][x][1]}, ${imageData[y][x][2]})`;
-                               ctx.fillRect( x, y, 1, 1 );
-                            }
-                        }
-                    } else {
-                        editorOutput.getWrapperElement().style.display = "block";
-                        editorOutput.setValue(json[0]);
-                    }
-                } catch (e) {
-                    editorOutput.getWrapperElement().style.display = "block";
-                    editorOutput.setValue(json[0]);
-                }
-               } else {
-                editorOutput.getWrapperElement().style.display = "block"; 
-                editorOutput.setValue(json[0]);
-               }
-             } catch (e) {
-                editorOutput.getWrapperElement().style.display = "block";
-                editorOutput.setValue(text);
-             }
-            } 
-          });       
         })
         .catch(err => {
 	      // Handle error
