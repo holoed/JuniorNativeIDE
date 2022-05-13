@@ -1,23 +1,31 @@
+val fix :: ((a -> b) -> a -> b) -> a -> b
 let fix f x = f (fix f) x
- 
+  
+val ana :: Functor f => (a -> f a) -> (a -> Fix f) -> a -> Fix f
 let ana psi f = In . fmap f . psi
 
+val cata :: Functor f => (f a -> a) -> (Fix f -> a) -> Fix f -> a
 let cata psi f = psi . fmap f . out
 
+val anaRec :: Functor f => (a -> f a) -> a -> Fix f
 let anaRec psi = fix (ana psi)
  
+val cataRec :: Functor f => (f a -> a) -> Fix f -> a
 let cataRec psi = fix (cata psi)
-  
+ 
+val toListAlg :: ListF a (List a) -> List a
 let toListAlg v = 
    if isEmpty v then [] 
    else if isCons v then 
-   let (x, xs) = extractCons v in x:xs
+   let (x, xs) = extractCons v in x:xs 
    else undefined
             
+val fromListAlg :: List a -> ListF a (List a)         
 let fromListAlg xs = 
    if null xs then Empty
    else Cons (head xs) (tail xs)
-   
+
+val swap :: Ord a => ListF a (ListF a b) -> ListF a (ListF a b)
 let swap v = if isEmpty v then Empty
              else let (x, y) = extractCons v in
              if isEmpty y then Cons x Empty 
@@ -25,14 +33,20 @@ let swap v = if isEmpty v then Empty
              if x <= x2 then Cons x (Cons x2 y2)
              else Cons x2 (Cons x y2)
 
+val sortList :: Ord a => Fix (ListF a) -> Fix (ListF a)
 let sortList = anaRec (cataRec (fmap In . swap))
 
+val fromList :: List a -> Fix (ListF a)
 let fromList xs = anaRec fromListAlg xs
 
+val toList :: Fix (ListF a) -> List a
 let toList xs = cataRec toListAlg xs
 
+val sort :: Ord a => List a -> List a
 let sort = toList . sortList . fromList 
 
+val example :: List Int
 let example = 3:1:6:9:5:0:[] 
-                      
+
+val main :: List Int
 let main = sort example  
