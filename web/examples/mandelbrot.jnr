@@ -1,5 +1,5 @@
-val posToCoord :: Int -> Int -> (Int, Int)
-let posToCoord sz x =
+val posToCoord :: (Int, Int) -> (Int, Int)
+let posToCoord (sz, x) =
   let row = x / sz in
     let col = x - sz * row in
     (row, col)
@@ -13,22 +13,22 @@ let mul ((x1, y1),(x2, y2)) = ((x1 * x2 - y1 * y2), (x1 * y2 + y1 * x2))
 val norm :: (Double, Double) -> Double
 let norm (re, im) = re * re + im * im
  
-val mPoint :: Int -> (Double, Double) -> (Double, Double) -> Int
-let mPoint i c z =
-  if (i == 65 || norm z > 4.0) then i else mPoint (i + 1) c (add (mul (z, z), c))
-   
-val mandelbrot :: Int -> (Int, Int) -> (Int, Int, Int)
-let mandelbrot s (x, y) =
+val mPoint :: (Int, (Double, Double), (Double, Double)) -> Int
+let mPoint (i, c, z) =
+  if (i == 65 || norm z > 4.0) then i else mPoint ((i + 1), c, (add (mul (z, z), c)))
+      
+val mandelbrot :: (Int, (Int, Int)) -> (Int, Int, Int)
+let mandelbrot (s, (x, y)) =
   let x' = (4.0 * toDouble y / toDouble s) - 2.5 in
   let y' = (4.0 * toDouble x / toDouble s) - 2.0 in
-  let i' = mPoint 0 (x', y') (0.0, 0.0) in
-  let f i = 128 + truncate (128.0 * (cos (toDouble i * 0.3))) in
+  let i' = mPoint (0, (x', y'), (0.0, 0.0)) in
+  let f i = 128 + truncate (128.0 * (cos (toDouble i * 0.3))) in     
   (f i', f (i' + 16), f (i' + 32))
  
-val render :: (Int -> (Int, Int) -> (Int, Int, Int)) -> Int -> List (List (Int, Int, Int))
+val render :: ((Int, (Int, Int)) -> (Int, Int, Int)) -> Int -> List (List (Int, Int, Int))
 let render effect pixSize =
-let f = effect pixSize . posToCoord pixSize in
+let f x = effect (pixSize, (posToCoord (pixSize, x))) in
     split pixSize (range f 0 (pixSize * pixSize))
 
-val main :: Map String (List (List (Int, Int, Int)))
-let main = display (render mandelbrot 500) 
+val main :: Map String (List (List (Int, Int, Int))) 
+let main = display (render mandelbrot 500)                
