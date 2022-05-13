@@ -25,9 +25,10 @@ let mandelbrot s (x, y) =
   let f i = 128 + truncate (128.0 * (cos (toDouble i * 0.3))) in
   (f i', f (i' + 16), f (i' + 32))
  
-val render :: (Int -> (Int, Int) -> (Int, Int, Int)) -> Int -> List List (Int, Int, Int)
+val render :: (Int -> (Int, Int) -> (Int, Int, Int)) -> Int -> List (List (Int, Int, Int))
 let render effect pixSize =
 let f = effect pixSize . posToCoord pixSize in
     split pixSize (range f 0 (pixSize * pixSize))
-     
-let main = display (render mandelbrot 500)
+
+val main :: Map String (List (List (Int, Int, Int)))
+let main = display (render mandelbrot 500) 
