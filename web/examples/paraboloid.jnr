@@ -1,0 +1,17 @@
+val posToCoord :: Int -> Int -> (Int, Int)
+let posToCoord sz x =
+  let row = x / sz in
+    let col = x - sz * row in
+    (row, col)
+   
+val paraboloid :: Int -> (Int, Int) -> Double
+let paraboloid s (x, y) =
+  let s' = toDouble s in
+  let x' = toDouble x in
+  let y' = toDouble y in
+  (s' * x' + s' * y') - (x' * x' + y' * y')
+   
+val z2 :: Int -> List (List Double)
+let z2 sz = split sz (range (paraboloid sz . posToCoord sz) 0 (sz * sz))
+
+let main = renderPlot (z2 20)               
