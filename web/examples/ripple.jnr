@@ -1,0 +1,24 @@
+let posToCoord sz x =
+  let row = x / sz in
+    let col = x - sz * row in
+    (row, col)
+
+let impulse s (x, y) =
+  let s' = toDouble s in
+  let x' = toDouble x in
+  let y' = toDouble y in
+  let r = (sqrt (x' * x' + y' * y') + 0.0001) * 2.0001 in
+  sin r / r
+  
+let min x y = if x > y then y else x
+
+let cutOff t f s (x, y) = 
+  let v = f s (x, y) in
+  min t v 
+  
+let shift f (x, y) = (f x, f y)
+   
+val z2 :: Int -> List (List Double)
+let z2 sz = split sz (range (cutOff 0.4 impulse sz . shift (\x -> x - sz / 2) . posToCoord sz) 0 (sz * sz))
+
+let main = renderPlot (z2 20)                 
