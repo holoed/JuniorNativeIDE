@@ -1,0 +1,17 @@
+val posToCoord :: Int -> Int -> (Int, Int)
+let posToCoord sz x =
+  let row = x / sz in
+    let col = x - sz * row in
+    (row, col)
+   
+val saddle :: Int -> (Int, Int) -> Double
+let saddle s (x, y) =
+  let s' = toDouble s in
+  let x' = toDouble x in
+  let y' = toDouble y in
+  ((s' * x' - s' * y') - (x' * x' - y' * y'))
+   
+val z2 :: Int -> List (List Double)
+let z2 sz = split sz (range (saddle sz . posToCoord sz) 0 (sz * sz))
+
+let main = renderPlot (z2 20)              
