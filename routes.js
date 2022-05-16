@@ -3,6 +3,7 @@ const router = require('express').Router();
 const request = require('request');
 
 const textParser = require('body-parser').text();
+const jsonParser = require('body-parser').json();
 
 //const url = "http://localhost:8080"
 const url = "http://junior-type.default.svc.cluster.local"
@@ -42,6 +43,16 @@ router.post('/compileToJs', textParser, function(req, res) {
 router.get('/libJs', textParser, function(req, res) {
     request.get({ headers: {'content-type' : 'text/plain'}
     , url: url + "/libJs" }
+    , function(error, response, body){
+        res.send(body);
+    });  
+});
+
+router.post('/fetch', jsonParser, function(req, res) {
+    const reqUrl = req.body.url;
+    console.log(reqUrl);
+    request.get({ headers: {'content-type' : 'text/plain'}
+    , url: reqUrl }
     , function(error, response, body){
         res.send(body);
     });  

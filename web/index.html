@@ -492,10 +492,20 @@ const keyMap = {
                                       "\n\n" + jsCode.replace("const main = ", "return ") + 
                                       "\n\n})();"
             const t0 = performance.now();
-            var ret = JSON.stringify(eval(script));
-            const t1 = performance.now();
-            document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
-            editorOutputJs.setValue(ret == undefined ? "()" : ret);
+            const ret = eval(script);
+            if (ret instanceof Promise) {
+              ret.then(x => {
+                var retStr = JSON.stringify(x);
+                const t1 = performance.now();
+                document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
+                editorOutputJs.setValue(retStr == undefined ? "()" : retStr);  
+              }) 
+            } else {
+              var retStr = JSON.stringify(ret);
+              const t1 = performance.now();
+              document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
+              editorOutputJs.setValue(retStr == undefined ? "()" : retStr);
+            }
           } catch (e) {
             var canvas = document.getElementById('canvas');
             canvas.style.display = "none";
