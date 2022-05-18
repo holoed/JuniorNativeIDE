@@ -14,7 +14,7 @@ let char x = sat (\y -> x == y)
     
 val mplus :: Parser a -> Parser a -> Parser a
 let mplus p q = mkParser(\inp -> let ret = runParser p inp in
-                                 if null ret then runParser q inp  
+                                 if null ret then runParser q inp   
                                  else ret)
  
 val many :: Parser a -> Parser (List a)
@@ -45,9 +45,9 @@ let string s =
            bind (char c)      (\x1 ->
            bind (string' cs') (\x2 -> 
            pure (c:cs')))
-    in string' (toCharList s)
+    in string' (toCharList s) 
 
-val quotedString :: Parser (List Char)    
+val quotedString :: Parser (List Char)     
 let quotedString = bind (char '"') (\x ->
                    bind (many (sat (\x -> not (x == '"')))) (\s ->
                    bind (char '"') (\y -> pure s)))
@@ -61,6 +61,11 @@ let jsonParser =
   bind (string "{") (\x ->
   bind (sepBy jsonValue (string ", ")) (\xs ->
   bind (string "}") (\x -> pure (JsonNode xs)))) 
-        
-let main = runParser jsonParser (toCharList "{\"firstName\":\"John\", \"lastName\":\"Doe\", \"Child\":{\"firstName\":\"Bart\"}}")    
+ 
+val parse :: String -> Json
+let parse = fst . head . runParser jsonParser . toCharList
+ 
+val main :: Json 
+let main = parse "{\"firstName\":\"John\", \"lastName\":\"Doe\", \"Child\":{\"firstName\":\"Bart\"}}"
+
                 
