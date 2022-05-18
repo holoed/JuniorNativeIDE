@@ -33,8 +33,6 @@ let sepBy p sep =
           (bind p (\x ->
                 bind (many (bind sep (\s ->
                             bind p pure))) (\xs -> pure (x:xs)))) (pure [])
-val not :: Bool -> Bool
-let not x = if x then False else True
 
 val string :: String -> Parser (List Char)
 let string s = 
@@ -49,7 +47,7 @@ let string s =
 
 val quotedString :: Parser (List Char)     
 let quotedString = bind (char '"') (\x ->
-                   bind (many (sat (\x -> not (x == '"')))) (\s ->
+                   bind (many (sat (\x -> x /= '"'))) (\s ->
                    bind (char '"') (\y -> pure s)))
 
 val jsonParser :: Parser Json
