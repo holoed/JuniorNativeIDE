@@ -1,24 +1,30 @@
+val posToCoors :: Fractional a => a -> a -> (a, a)
 let posToCoord sz x =
   let row = x / sz in
     let col = x - sz * row in
     (row, col)
 
+val impulse :: Int -> (Int, Int) -> Double
 let impulse s (x, y) =
   let s' = toDouble s in
   let x' = toDouble x in
   let y' = toDouble y in
   let r = (sqrt (x' * x' + y' * y') + 0.0001) * 2.0001 in
   sin r / r
-  
+   
+val min :: Ord a => a -> a -> a
 let min x y = if x > y then y else x
 
+val cutOff :: Ord a => a -> (b -> (c, d) -> a) -> b -> (c, d) -> a
 let cutOff t f s (x, y) = 
   let v = f s (x, y) in
   min t v 
-  
+
+val shift :: (a -> b) -> (a, a) -> (b, b)
 let shift f (x, y) = (f x, f y)
    
 val z2 :: Int -> List (List Double)
 let z2 sz = split sz (range (cutOff 0.4 impulse sz . shift (\x -> x - sz / 2) . posToCoord sz) 0 (sz * sz))
 
+val main :: List (List Double)
 let main = renderPlot (z2 20)                 
