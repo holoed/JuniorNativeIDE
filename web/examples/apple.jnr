@@ -16,19 +16,13 @@ let sequence = mapM (\x -> x)
 val flatten :: List (List a) -> List a
 let flatten xs = bind xs (\x -> x)
 
-val toTimeStamps :: List Int -> List String
-let toTimeStamps = fmap timeStampToDate
-
-val fff :: Maybe (List Int) -> Maybe (List String)
-let fff = fmap (toTimeStamps)
-
 let getData v = 
   bind (parseJson v)(\x ->
   bind (getJsonValue "chart" x)(\y ->
   bind (getJsonList "result" y)(\z ->
   pure (head z))))
   
-let getClose v =
+let getClose v = 
   flatten (maybeToList (
   bind (getJsonValue "indicators" v)(\r1 -> 
   bind (getJsonList "quote" r1)(\r2 -> 
@@ -38,7 +32,7 @@ let getClose v =
 let getTimestamps v =
   flatten (maybeToList (
   bind (getJsonList "timestamp" v)(\r -> 
-  fff (sequence (fmap jsonToInt r)))))
+  fmap (fmap timeStampToDate) (sequence (fmap jsonToInt r)))))
 
 let bar1 v = flatten (maybeToList (bind (getData v)(\z -> 
              pure (getTimestamps z))))
