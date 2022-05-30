@@ -1,16 +1,12 @@
 let foo = httpGet "https://query1.finance.yahoo.com/v8/finance/chart/AAPL" 
 
-let foldr f v xs =
-  if (null xs) then v
-  else f (head xs) (foldr f v (tail xs))
-
 let mapM f as = 
   let k a r = bind (f a) (\x ->
               bind r     (\xs -> 
               pure (x:xs))) in    
   foldr k (pure []) as
   
-let getData v = 
+let getData v =   
   bind (parseJson v)(\x ->
   bind (getJsonValue "chart" x)(\y ->
   bind (getJsonList "result" y)(\z ->
