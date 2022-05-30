@@ -1,4 +1,3 @@
-
 let foo = httpGet "https://query1.finance.yahoo.com/v8/finance/chart/AAPL" 
 
 let foldr f v xs =
@@ -8,37 +7,31 @@ let foldr f v xs =
 let mapM f as = 
   let k a r = bind (f a) (\x ->
               bind r     (\xs -> 
-              pure (x:xs))) in   
+              pure (x:xs))) in    
   foldr k (pure []) as
   
-let sequence = mapM (\x -> x) 
-
-val flatten :: List (List a) -> List a
-let flatten xs = bind xs (\x -> x)
-
 let getData v = 
   bind (parseJson v)(\x ->
   bind (getJsonValue "chart" x)(\y ->
   bind (getJsonList "result" y)(\z ->
   pure (head z))))
-  
+    
 let getClose v = 
-  flatten (maybeToList (
   bind (getJsonValue "indicators" v)(\r1 -> 
   bind (getJsonList "quote" r1)(\r2 -> 
-  bind (getJsonList "close" (head r2))(\r3 -> 
-  sequence (fmap jsonToDouble r3))))))
+  bind (getJsonList "close" (head r2))(\r3 ->  
+  mapM jsonToDouble r3)))
   
 let getTimestamps v =
-  flatten (maybeToList (
   bind (getJsonList "timestamp" v)(\r -> 
-  fmap (fmap timeStampToDate) (sequence (fmap jsonToInt r)))))
+  fmap (fmap timeStampToDate) (mapM jsonToInt r))
 
-let bar1 v = flatten (maybeToList (bind (getData v)(\z -> 
-             pure (getTimestamps z))))
-            
-let bar2 v = flatten (maybeToList (bind (getData v)(\z -> 
-             pure (getClose z))))
- 
-let main = bind foo(\x -> pure (renderTimeSeries ((bar1 x), (bar2 x))))
- 
+let bar v = bind (getData v)(\z -> 
+            bind (getTimestamps z)(\ts ->
+            bind (getClose z)(\vs ->
+            pure (ts, vs))))
+             
+let main =  bind foo(\x -> 
+            pure (bind (bar x) (\(xs, ys) ->
+            pure (renderTimeSeries (xs, ys)))))  
+  
