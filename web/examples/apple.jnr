@@ -1,29 +1,23 @@
 let foo = httpGet "https://query1.finance.yahoo.com/v8/finance/chart/AAPL" 
-
-let mapM f as = 
-  let k a r = bind (f a) (\x ->
-              bind r     (\xs -> 
-              pure (x:xs))) in    
-  foldr k (pure []) as
-  
+   
 let getData v =   
   bind (parseJson v)(\x ->
   bind (getJsonValue "chart" x)(\y ->
-  bind (getJsonList "result" y)(\z ->
-  pure (head z))))
-    
+  bind (getJsonList "result" y)(\z -> 
+  pure (head z))))   
+     
 let getClose v = 
-  bind (getJsonValue "indicators" v)(\r1 -> 
-  bind (getJsonList "quote" r1)(\r2 -> 
-  bind (getJsonList "close" (head r2))(\r3 ->  
-  mapM jsonToDouble r3)))
-  
+  bind (getJsonValue "indicators" v)(\r1 ->   
+  bind (getJsonList "quote" r1)(\r2 ->   
+  bind (getJsonList "close" (head r2))(\r3 ->    
+  traverse jsonToDouble r3)))  
+     
 let getTimestamps v =
   bind (getJsonList "timestamp" v)(\r -> 
-  fmap (fmap timeStampToDate) (mapM jsonToInt r))
-
+  fmap (fmap timeStampToDate) (traverse jsonToInt r))
+  
 let bar v = bind (getData v)(\z -> 
-            bind (getTimestamps z)(\ts ->
+            bind (getTimestamps z)(\ts ->  
             bind (getClose z)(\vs ->
             pure (ts, vs))))
              
