@@ -500,7 +500,7 @@ const keyMap = {
                 var retStr = JSON.stringify(x);
                 const t1 = performance.now();
                 document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
-                editorOutputJs.setValue(retStr == undefined ? "()" : retStr);  
+                editorOutputJs.setValue(`Promise resolved to:\r\n${retStr == undefined ? "()" : retStr}`);  
               }) 
             } else {
               var retStr = JSON.stringify(ret);
