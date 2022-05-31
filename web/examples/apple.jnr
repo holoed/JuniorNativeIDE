@@ -1,36 +1,38 @@
+val flatten :: Monad m => m (m a) -> m a
+let flatten xs = bind xs id  
+
+val sequenceA :: (Applicative f, Traversable t) => t (f a) -> f (t a)
+let sequenceA = traverse id
+
+val liftA2 :: Applicative f => (a -> b -> c) -> f a -> f b -> f c
+let liftA2 f m n = (pure f) <*> m <*> n
+
 val jsonData :: Async String
 let jsonData = httpGet "https://query1.finance.yahoo.com/v8/finance/chart/AAPL" 
 
 val getData :: String -> Maybe Json
-let getData v =   
-  bind (parseJson v)(\x ->
-  bind (getJsonValue "chart" x)(\y ->
-  bind (getJsonList "result" y)(\z -> 
-  pure (head z))))   
-
-val getClose :: Json -> Maybe (List Double)
-let getClose v = 
-  bind (getJsonValue "indicators" v)(\r1 ->   
-  bind (getJsonList "quote" r1)(\r2 ->   
-  bind (getJsonList "close" (head r2))(\r3 ->    
-  traverse jsonToDouble r3)))  
+let getData = parseJson >=> 
+              getJsonValue "chart" >=> 
+              getJsonList "result" >=> 
+              (Just . head) 
+  
+val getClose :: Json -> Maybe (List Double)      
+let getClose = getJsonValue "indicators" >=> 
+               getJsonList "quote" >=> 
+               (Just . head) >=>
+               getJsonList "close" >=>
+               traverse jsonToDouble
 
 val getTimestamps :: Json -> Maybe (List String)
-let getTimestamps v =
+let getTimestamps v = 
   bind (getJsonList "timestamp" v)(\r -> 
   fmap (fmap timeStampToDate) (traverse jsonToInt r))
 
 val spotData :: String -> Maybe ((List String, List Double))
 let spotData v = bind (getData v)(\z -> 
-                 bind (getTimestamps z)(\ts ->  
-                 bind (getClose z)(\vs ->
-                 pure (ts, vs))))
-
-val flatten :: Monad m => m (m a) -> m a
-let flatten xs = bind xs (\x -> x)  
-
-val sequenceA :: (Applicative f, Traversable t) => t (f a) -> f (t a)
-let sequenceA = traverse (\x -> x)
+                 liftA2 (\x y -> (x, y))
+                        (getTimestamps z)
+                        (getClose z))
  
 val main :: Async (Maybe Unit) 
 let main =  flatten (fmap sequenceA (
