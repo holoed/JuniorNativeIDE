@@ -129,10 +129,11 @@
             <input id="autoRunCheckBoxJavaScript" type="checkbox" checked>auto run js</input>
         </div>
         <div style="text-align: right;">
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Prelude')">Prelude</button>
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Typed')">Typed</button>
             <button class="w3-bar-item w3-button tablink"onclick="openTab(event, 'Compiled')">Compiled</button>
-            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'CompiledJs')">CompiledJs</button>
-            <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'OutputJs')">OutputJs</button>
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'CompiledJs')">Js</button>
+            <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Output')">Output</button>
         </div>
 </div>
 
@@ -142,6 +143,7 @@
     </div>
     <div id="separator" ></div>
     <div id="second" style="background-color: black;">
+        <textarea id="preludeTypes" name="preludeTypes"></textarea> 
         <textarea id="types" name="types"></textarea>
         <textarea id="compiled" name="compiled"></textarea>
         <textarea id="out" name="out"></textarea>
@@ -189,6 +191,10 @@ window.onclick = function(event) {
 var currentTabName = "";
 function activatePanel(name) {
    clearPanels();
+   if (name == "Prelude") {
+    preludeTypes.getWrapperElement().style.display = "block";  
+    refreshtPreludeTypes(preludeTypes); 
+   }
    if (name == "Typed") {
     editorTypes.getWrapperElement().style.display = "block"; 
     compileTo("/type", editor.getValue(), editorTypes);  
@@ -204,7 +210,7 @@ function activatePanel(name) {
     editorCompiledJs.getWrapperElement().style.display = "block";
     compileToJs();
    }
-   if (name == "OutputJs") { 
+   if (name == "Output") { 
     compileToJs();
     editorOutputJs.getWrapperElement().style.display = "block";
    }
@@ -221,6 +227,7 @@ function clearPanels() {
   editorTypes.getWrapperElement().style.display = "none";
   editorCompiledJs.getWrapperElement().style.display = "none";
   editorOutputJs.getWrapperElement().style.display = "none";
+  preludeTypes.getWrapperElement().style.display = "none";
 }
 
 function getActiveTabName() {
@@ -337,7 +344,7 @@ const keyMap = {
         cm.on("mousedown", removeTT);
     },
     "Ctrl-.": function (cm) {
-        if (currentTabName == "OutputJs") compileToJs();
+        if (currentTabName == "Output") compileToJs();
     },
     "Ctrl-/": function(cm) {
       CodeMirror.commands.toggleComment(cm, { commentBlankLines:true, fillLines: true });
@@ -378,6 +385,12 @@ const keyMap = {
         theme: "ambiance"
       });
 
+      var preludeTypes = CodeMirror.fromTextArea(document.getElementById("preludeTypes"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        theme: "ambiance"
+      });
+
       var editorCompiled = CodeMirror.fromTextArea(document.getElementById("compiled"), {
         lineNumbers: true,
         matchBrackets: true,
@@ -412,7 +425,7 @@ const keyMap = {
       canvas.style.height = '100%';
       var ctx = canvas.getContext('2d');
       clearPanels();
-      activatePanel("OutputJs")
+      activatePanel("Output")
      
       editor.on("change", function () {
         var code = editor.getValue();
@@ -429,6 +442,19 @@ const keyMap = {
         compileToJs();
       });
     };
+
+    function wrapIfOperator(x){
+      return (new RegExp(/^[0-9a-zA-Z]+$/).test(x)) ? x : `(${x})`
+    }
+
+    function refreshtPreludeTypes(cm) {
+      fetch("/libTypes")
+      .then(response => response.json())
+      .then(ret => {
+        const doc = ret.map(x => ` ${wrapIfOperator(x[0])} : ${x[1]}`).reduce((x, y) => `${x}\r\n${y}`)
+        preludeTypes.setValue(doc)
+      })
+    }
 
     function compileTo(path, code, cm) {
         fetch(path, { method:'POST', body: code})
@@ -492,7 +518,7 @@ const keyMap = {
 
     function runJs(jsCode) {
       clearPanels();
-      if (currentTabName != "OutputJs") return;
+      if (currentTabName != "Output") return;
       editorOutputJs.getWrapperElement().style.display = "block";
       fetch("libJs/", { method: 'GET' })
       .then(res => { 
@@ -537,7 +563,7 @@ const keyMap = {
                    const json = JSON.parse(text);
                    if (json[0] != undefined) {
                      var activeTabName = getActiveTabName();
-                     if (activeTabName == "OutputJs") {
+                     if (activeTabName == "Output") {
                       var autoRun = document.getElementById("autoRunCheckBoxJavaScript");
                       if (autoRun.checked) runJs(json[0]);
                      }

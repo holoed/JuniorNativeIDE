@@ -48,6 +48,14 @@ router.get('/libJs', textParser, function(req, res) {
     });  
 });
 
+router.get('/libTypes', jsonParser, function(req, res) {
+    request.get({ headers: {'content-type' : 'application/json'}
+    , url: url + "/libTypes" }
+    , function(error, response, body){
+        res.send(body);
+    });  
+});
+
 router.post('/fetch', jsonParser, function(req, res) {
     const reqUrl = req.body.url;
     console.log(reqUrl);
