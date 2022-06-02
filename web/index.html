@@ -16,6 +16,7 @@
 <script src="addons/hover/text-hover.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://unpkg.com/rxjs@^7/dist/bundles/rxjs.umd.min.js"></script>
 <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
 <style>
 
@@ -423,12 +424,20 @@ const keyMap = {
       canvas.style.zIndex = "2";
       canvas.style.width  = '100%';
       canvas.style.height = '100%';
-      var ctx = canvas.getContext('2d');
       clearPanels();
       activatePanel("Output")
      
+      var source = new rxjs.Subject();
+      source.pipe(rxjs.debounceTime(500))
+      .subscribe(_ => onChange())
       editor.on("change", function () {
-        var code = editor.getValue();
+        source.next();
+      });
+    };
+
+    function onChange() {
+      var ctx = canvas.getContext('2d');
+      var code = editor.getValue();
         editorOutputJs.setValue("");
         editorCompiledJs.setValue("");
         editorOutput.setValue("");
@@ -440,8 +449,7 @@ const keyMap = {
         compileTo("/type", code, editorTypes);
         compileTo("/compile", code, editorCompiled);
         compileToJs();
-      });
-    };
+    }
 
     function wrapIfOperator(x){
       return (new RegExp(/^[0-9a-zA-Z]+$/).test(x)) ? x : `(${x})`
