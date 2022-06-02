@@ -45,8 +45,5 @@ let toList xs = cataRec toListAlg xs
 val sort :: Ord a => List a -> List a
 let sort = toList . sortList . fromList 
 
-val example :: List Int
-let example = 3:1:6:9:5:0:[] 
-
 val main :: List Int
-let main = sort example  
+let main = sort [3,1,6,9,5,0]   
