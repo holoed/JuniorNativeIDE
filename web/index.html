@@ -459,7 +459,7 @@ const keyMap = {
       fetch("/libTypes")
       .then(response => response.json())
       .then(ret => {
-        const doc = ret.map(x => ` ${wrapIfOperator(x[0])} : ${x[1]}`).reduce((x, y) => `${x}\r\n${y}`)
+        const doc = ret.map(x => ` ${wrapIfOperator(x[0])} :: ${x[1]}`).reduce((x, y) => `${x}\r\n${y}`)
         preludeTypes.setValue(doc)
       })
     }
