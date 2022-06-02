@@ -126,13 +126,13 @@
         <div class="w3-bar-item" style="flex-grow: 1;"></div>
         <div class="w3-bar-item"><p id="bench"></p></div>
         <div class="w3-bar-item" style="flex-grow: 0;">
-            <input id="autoRunCheckBoxJavaScript" type="checkbox">auto run js</input>
+            <input id="autoRunCheckBoxJavaScript" type="checkbox" checked>auto run js</input>
         </div>
         <div style="text-align: right;">
-            <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'Typed')">Typed</button>
+            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Typed')">Typed</button>
             <button class="w3-bar-item w3-button tablink"onclick="openTab(event, 'Compiled')">Compiled</button>
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'CompiledJs')">CompiledJs</button>
-            <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'OutputJs')">OutputJs</button>
+            <button class="w3-bar-item w3-button tablink w3-red" onclick="openTab(event, 'OutputJs')">OutputJs</button>
         </div>
 </div>
 
@@ -221,6 +221,14 @@ function clearPanels() {
   editorTypes.getWrapperElement().style.display = "none";
   editorCompiledJs.getWrapperElement().style.display = "none";
   editorOutputJs.getWrapperElement().style.display = "none";
+}
+
+function getActiveTabName() {
+  tablinks = document.getElementsByClassName("tablink");
+  for (i = 0; i < tablinks.length; i++) {
+    if (tablinks[i].className.includes("w3-red"))
+      return tablinks[i].innerText;
+  } 
 }
 
 function openTab(evt, tabName) {
@@ -404,7 +412,7 @@ const keyMap = {
       canvas.style.height = '100%';
       var ctx = canvas.getContext('2d');
       clearPanels();
-      activatePanel("Typed")
+      activatePanel("OutputJs")
      
       editor.on("change", function () {
         var code = editor.getValue();
@@ -483,6 +491,7 @@ const keyMap = {
       }
 
     function runJs(jsCode) {
+      clearPanels();
       if (currentTabName != "OutputJs") return;
       editorOutputJs.getWrapperElement().style.display = "block";
       fetch("libJs/", { method: 'GET' })
@@ -527,8 +536,11 @@ const keyMap = {
                 try {
                    const json = JSON.parse(text);
                    if (json[0] != undefined) {
-                     var autoRun = document.getElementById("autoRunCheckBoxJavaScript");
-                     if (autoRun.checked) runJs(json[0]);
+                     var activeTabName = getActiveTabName();
+                     if (activeTabName == "OutputJs") {
+                      var autoRun = document.getElementById("autoRunCheckBoxJavaScript");
+                      if (autoRun.checked) runJs(json[0]);
+                     }
                      editorCompiledJs.setValue(
                         window.js_beautify(json[0], window.js_beautify.defaultOptions())
                      );
