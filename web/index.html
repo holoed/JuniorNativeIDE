@@ -452,6 +452,7 @@ const keyMap = {
     }
 
     function wrapIfOperator(x){
+      if (x == "[]" || x == "()") return x;
       return (new RegExp(/^[0-9a-zA-Z]+$/).test(x)) ? x : `(${x})`
     }
 
@@ -459,7 +460,9 @@ const keyMap = {
       fetch("/libTypes")
       .then(response => response.json())
       .then(ret => {
-        const doc = ret.map(x => ` ${wrapIfOperator(x[0])} :: ${x[1]}`).reduce((x, y) => `${x}\r\n${y}`)
+        const doc = ret.sort((x,y) => x[0].localeCompare(y[0]))
+                       .map(x => ` ${wrapIfOperator(x[0])} :: ${x[1]}`)
+                       .reduce((x, y) => `${x}\r\n${y}`)
         preludeTypes.setValue(doc)
       })
     }
