@@ -1,12 +1,3 @@
-val flatten :: Monad m => m (m a) -> m a
-let flatten xs = bind xs id  
-
-val sequenceA :: (Applicative f, Traversable t) => t (f a) -> f (t a)
-let sequenceA = traverse id
-
-val liftA3 :: Applicative f => (a -> b -> c -> d) -> f a -> f b -> f c -> f d
-let liftA3 f m n o = (pure f) <*> m <*> n <*> o
-
 val jsonData :: Async String
 let jsonData = httpGet "https://query1.finance.yahoo.com/v8/finance/chart/AAPL" 
 

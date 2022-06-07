@@ -52,8 +52,6 @@ let foldl f v xs =
   
 let foldl1 f xs = foldl f (head xs) (tail xs)
   
-let foldr1 f xs = foldr f (head xs) (tail xs)
-
 let eval xs = 
   let op m n = 10*m + n in 
   foldl1 op (bind xs (\x -> pure (ord x - ord '0'))) 
