@@ -2,7 +2,7 @@ val jsonData :: String -> Async String
 let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/chart/" <> symbol)
 
 val getData :: String -> Maybe Json
-let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> (Just . head) 
+let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> listToMaybe 
               
 let getSymbol = getJsonValue "meta" >=> getJsonValue "symbol" >=> jsonToString  
 
@@ -11,7 +11,7 @@ let getPreviousClose = getJsonValue "meta" >=> getJsonValue "previousClose" >=> 
 val getClose :: Json -> Maybe (List Double)      
 let getClose = getJsonValue "indicators" >=> 
                getJsonList "quote" >=>  
-               (Just . head) >=> 
+               listToMaybe >=> 
                getJsonList "close" >=>
                traverse jsonToDouble                  
    
@@ -35,7 +35,7 @@ val ticker :: String -> Async (List ((String, List String, List Double)))
 let ticker symbol = bind (jsonData symbol) (\x -> pure ((maybeToList . spotData) x))
  
 let tickers = ["^IXIC", "H", "RKLB", "AMAT", 
-               "AAPL", "TSLA", "AMD", "MAR", 
+               "AAPL", "TSLA", "AMD", "MAR",  
                "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
                "FB", "U", "ETSY", "TWTR"]
  
