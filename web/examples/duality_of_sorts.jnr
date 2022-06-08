@@ -1,18 +1,3 @@
-val fix :: ((a -> b) -> a -> b) -> a -> b
-let fix f x = f (fix f) x
-  
-val ana :: Functor f => (a -> f a) -> (a -> Fix f) -> a -> Fix f
-let ana psi f = In . fmap f . psi
-
-val cata :: Functor f => (f a -> a) -> (Fix f -> a) -> Fix f -> a
-let cata psi f = psi . fmap f . out
-
-val anaRec :: Functor f => (a -> f a) -> a -> Fix f
-let anaRec psi = fix (ana psi)
- 
-val cataRec :: Functor f => (f a -> a) -> Fix f -> a
-let cataRec psi = fix (cata psi)
- 
 val toListAlg :: ListF a (List a) -> List a
 let toListAlg v = 
    if isEmpty v then [] 
