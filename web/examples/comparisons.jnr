@@ -1,0 +1,40 @@
+val jsonData :: String -> Async String
+let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/chart/" <> symbol)
+
+val getData :: String -> Maybe Json
+let getData = parseJson >=> 
+              getJsonValue "chart" >=> 
+              getJsonList "result" >=> 
+              (Just . head) 
+              
+let getSymbol = getJsonValue "meta" >=> getJsonValue "symbol" >=> jsonToString  
+  
+val getClose :: Json -> Maybe (List Double)      
+let getClose = getJsonValue "indicators" >=> 
+               getJsonList "quote" >=>  
+               (Just . head) >=> 
+               getJsonList "close" >=>
+               traverse jsonToDouble                
+   
+val getTimestamps :: Json -> Maybe (List String)
+let getTimestamps v = 
+  bind (getJsonList "timestamp" v)(\r -> 
+  fmap (fmap timeStampToDate) (traverse jsonToInt r))  
+  
+let normalize xs = fmap (\x -> x / head xs) xs
+ 
+val spotData :: String -> Maybe ((String, List String, List Double))
+let spotData v = bind (getData v)(\z -> 
+                 liftA3 (\x y z -> (x, y, normalize z))
+                        (getSymbol z)
+                        (getTimestamps z)
+                        (getClose z))
+ 
+let ticker symbol = bind (jsonData symbol) (\x -> pure ((maybeToList . spotData) x))
+ 
+let tickers = ["^IXIC", "AAPL", "TSLA", "AMD", "MAR", "NVDA", "GOOGL", "AVGO", "LMT", "QCOM"]
+ 
+let main = bind (fmap flatten (sequenceA (fmap ticker tickers))) renderTimeSeries
+ 
+      
+             
