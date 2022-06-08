@@ -29,9 +29,7 @@ let spotData v = bind (getData v)(\z ->
                         (getClose z))
  
 let ticker symbol = bind (jsonData symbol) (\x -> pure ((maybeToList . spotData) x))
- 
-let (++) xs ys = foldr (:) ys xs 
- 
+  
 let main = bind (ticker "AAPL") renderTimeSeries
  
       
