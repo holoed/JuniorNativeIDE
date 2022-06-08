@@ -14,5 +14,5 @@ let paraboloid s (x, y) =
 val z2 :: Int -> List (List Double)
 let z2 sz = split sz (range (paraboloid sz . posToCoord sz) 0 (sz * sz))
 
-val main :: List (List Double)
+val main :: Async Unit
 let main = renderPlot (z2 20)               

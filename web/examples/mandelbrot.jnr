@@ -30,5 +30,5 @@ let render effect pixSize =
 let f x = effect (pixSize, (posToCoord (pixSize, x))) in
     split pixSize (range f 0 (pixSize * pixSize))
 
-val main :: Map String (List (List (Int, Int, Int))) 
+val main :: Async Unit
 let main = display (render mandelbrot 500)                
