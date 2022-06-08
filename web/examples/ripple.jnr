@@ -12,9 +12,6 @@ let impulse s (x, y) =
   let r = (sqrt (x' * x' + y' * y') + 0.0001) * 2.0001 in
   sin r / r
    
-val min :: Ord a => a -> a -> a
-let min x y = if x > y then y else x
-
 val cutOff :: Ord a => a -> (b -> (c, d) -> a) -> b -> (c, d) -> a
 let cutOff t f s (x, y) = 
   let v = f s (x, y) in
