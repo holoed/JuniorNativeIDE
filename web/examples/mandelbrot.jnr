@@ -15,7 +15,7 @@ let norm (re, im) = re * re + im * im
  
 val mPoint :: (Int, (Double, Double), (Double, Double)) -> Int
 let mPoint (i, c, z) =
-  if (i == 65 || norm z > 4.0) then i else mPoint ((i + 1), c, (add (mul (z, z), c)))
+  if (i == 65 || norm z > 4.0) then i else mPoint (i + 1, c, add (mul (z, z), c))
       
 val mandelbrot :: (Int, (Int, Int)) -> (Int, Int, Int)
 let mandelbrot (s, (x, y)) =
