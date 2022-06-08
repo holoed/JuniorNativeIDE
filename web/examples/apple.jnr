@@ -1,5 +1,5 @@
-val jsonData :: Async String
-let jsonData = httpGet "https://query1.finance.yahoo.com/v8/finance/chart/AAPL" 
+val jsonData :: String -> Async String
+let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/chart/" <> symbol)
 
 val getData :: String -> Maybe Json
 let getData = parseJson >=> 
@@ -28,10 +28,11 @@ let spotData v = bind (getData v)(\z ->
                         (getTimestamps z)
                         (getClose z))
  
-val main :: Async (Maybe Unit) 
-let main =  flatten (fmap sequenceA (
-            bind jsonData (\x -> 
-            pure (bind (spotData x) (\(symbol, xs, ys) ->
-            pure (renderTimeSeries (symbol, xs, ys)))))  
-            ))
-  
+let ticker symbol = bind (jsonData symbol) (\x -> pure ((maybeToList . spotData) x))
+ 
+let (++) xs ys = foldr (:) ys xs 
+ 
+let main = bind (ticker "AAPL") renderTimeSeries
+ 
+      
+            
