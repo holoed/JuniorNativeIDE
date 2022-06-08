@@ -1,6 +1,6 @@
 val posToCoord :: (Int, Int) -> (Int, Int)
 let posToCoord (sz, x) =
-  let row = x / sz in
+    let row = x / sz in
     let col = x - sz * row in
     (row, col)
  
