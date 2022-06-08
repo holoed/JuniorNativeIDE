@@ -2,39 +2,44 @@ val jsonData :: String -> Async String
 let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/chart/" <> symbol)
 
 val getData :: String -> Maybe Json
-let getData = parseJson >=> 
-              getJsonValue "chart" >=> 
-              getJsonList "result" >=> 
-              (Just . head) 
+let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> (Just . head) 
               
 let getSymbol = getJsonValue "meta" >=> getJsonValue "symbol" >=> jsonToString  
+
+let getPreviousClose = getJsonValue "meta" >=> getJsonValue "previousClose" >=> jsonToDouble  
   
 val getClose :: Json -> Maybe (List Double)      
 let getClose = getJsonValue "indicators" >=> 
                getJsonList "quote" >=>  
                (Just . head) >=> 
                getJsonList "close" >=>
-               traverse jsonToDouble                
+               traverse jsonToDouble                  
    
-val getTimestamps :: Json -> Maybe (List String)
+val getTimestamps :: Json -> Maybe (List String)     
 let getTimestamps v = 
-  bind (getJsonList "timestamp" v)(\r -> 
-  fmap (fmap timeStampToDate) (traverse jsonToInt r))  
-  
-let normalize xs = fmap (\x -> x / head xs) xs
+  bind (getJsonList "timestamp" v)(\r ->     
+  fmap (fmap timeStampToDate) (traverse jsonToInt r))   
  
-val spotData :: String -> Maybe ((String, List String, List Double))
-let spotData v = bind (getData v)(\z -> 
-                 liftA3 (\x y z -> (x, y, normalize z))
-                        (getSymbol z)
-                        (getTimestamps z)
-                        (getClose z))
- 
+val normalize :: Double -> List Double -> List Double
+let normalize c xs = fmap (\x -> if (x == 0) then x else 100 * (x - c) / c) xs 
+
+val spotData :: String -> Maybe ((String, List String, List Double)) 
+let spotData v = bind (getData v)(\z ->    
+                 pure (\x y c z -> (x, y, normalize c z))
+                      <*> (getSymbol z)  
+                      <*> (getTimestamps z) 
+                      <*> (getPreviousClose z)
+                      <*> (getClose z))
+
+val ticker :: String -> Async (List ((String, List String, List Double)))
 let ticker symbol = bind (jsonData symbol) (\x -> pure ((maybeToList . spotData) x))
  
-let tickers = ["^IXIC", "AAPL", "TSLA", "AMD", "MAR", "NVDA", "GOOGL", "AVGO", "LMT", "QCOM"]
+let tickers = ["^IXIC", "H", "RKLB", "AMAT", 
+               "AAPL", "TSLA", "AMD", "MAR", 
+               "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
+               "FB", "U", "ETSY", "TWTR"]
  
-let main = bind (fmap flatten (sequenceA (fmap ticker tickers))) renderTimeSeries
- 
+let main = bind (fmap flatten (sequenceA (fmap ticker tickers))) renderTimeSeries 
+  
       
-             
+               
