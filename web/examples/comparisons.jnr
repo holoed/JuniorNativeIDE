@@ -33,12 +33,14 @@ let spotData = getData >=> (\z ->
 val ticker :: String -> Async (List ((String, List String, List Double)))
 let ticker = jsonData >=> (pure . maybeToList . spotData)
  
+val tickers :: List String 
 let tickers = ["^IXIC", "H", "RKLB", "AMAT", 
-               "AAPL", "TSLA", "AMD", "MAR",  
+               "AAPL", "TSLA", "AMD", "MAR",   
                "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
                "FB", "U", "ETSY", "TWTR"]
  
-let main = (fmap flatten (sequenceA (fmap ticker tickers))) >>= renderTimeSeries 
+val main :: Async Unit
+let main = (fmap flatten (traverse ticker tickers)) >>= renderTimeSeries 
   
       
                
