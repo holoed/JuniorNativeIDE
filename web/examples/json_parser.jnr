@@ -13,19 +13,17 @@ let char x = sat (\y -> x == y)
     
 val mplus :: Parser a -> Parser a -> Parser a
 let mplus p q = mkParser(\inp -> let ret = runParser p inp in
-                                 if null ret then runParser q inp   
+                                 if null ret then runParser q inp    
                                  else ret)
- 
-val many :: Parser a -> Parser (List a)
-let many p = mplus (p       >>= (\x ->
-                   (many p) >>= (\xs ->
-                   pure (x:xs)))) (pure [])
- 
-val many1 :: Parser a -> Parser (List a)
-let many1 p = p >>= (\x ->
-              (many p) >>= (\xs -> 
-              pure (x:xs))) 
-  
+
+val delay :: (Unit -> Parser a) -> Parser a
+let delay p = mkParser (\inp -> runParser(p())(inp))
+
+val many :: Parser a -> Parser (List a) 
+let many p =  
+   let q = pure (:) <*> p <*> delay (\v -> many p) in
+   mplus q (pure [])  
+   
 val sepBy :: Parser a -> Parser b -> Parser (List a)
 let sepBy p sep = 
           mplus 
@@ -37,11 +35,7 @@ val string :: String -> Parser (List Char)
 let string s = 
 	let string' cs =  
       if null cs then pure []
-      else let c   = head cs in
-           let cs' = tail cs in
-           (char c) >>= (\x1 ->
-           (string' cs') >>= (\x2 -> 
-           pure (c:cs')))
+      else pure (:) <*> char (head cs) <*> string' (tail cs)  
     in string' (toCharList s) 
 
 val quotedString :: Parser (List Char)     
