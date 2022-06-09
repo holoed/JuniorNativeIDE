@@ -258,6 +258,7 @@ function dragElement(element, direction)
     const second = document.getElementById("second");
 
     element.onmousedown = onMouseDown;
+    element.ontouchstart = onMouseDown; 
 
     function onMouseDown(e)
     {
@@ -270,9 +271,14 @@ function dragElement(element, direction)
              };
 
         document.onmousemove = onMouseMove;
+        document.ontouchmove = onMouseMove;
         document.onmouseup = () => {
             //console.log("mouse up");
             document.onmousemove = document.onmouseup = null;
+        }
+        document.ontouchend = () => {
+            //console.log("mouse up");
+            document.ontouchmove = document.ontouchend = null;
         }
     }
 
