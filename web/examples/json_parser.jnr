@@ -6,8 +6,7 @@ let item = mkParser (\inp -> if (null inp) then []
                              else (head inp, tail inp) : [])
  
 val sat :: (Char -> Bool) -> Parser Char
-let sat p = bind item (\x ->
-              if p x then pure x else zero)
+let sat p = item >>= (\x -> if p x then pure x else zero)
   
 val char :: Char -> Parser Char
 let char x = sat (\y -> x == y)
@@ -18,21 +17,21 @@ let mplus p q = mkParser(\inp -> let ret = runParser p inp in
                                  else ret)
  
 val many :: Parser a -> Parser (List a)
-let many p = mplus (bind p (\x ->
-             bind (many p) (\xs ->
-             pure (x:xs)))) (pure [])
+let many p = mplus (p       >>= (\x ->
+                   (many p) >>= (\xs ->
+                   pure (x:xs)))) (pure [])
  
 val many1 :: Parser a -> Parser (List a)
-let many1 p = bind p (\x ->
-              bind (many p) (\xs -> 
-              pure (x:xs)))  
+let many1 p = p >>= (\x ->
+              (many p) >>= (\xs -> 
+              pure (x:xs))) 
   
 val sepBy :: Parser a -> Parser b -> Parser (List a)
 let sepBy p sep = 
           mplus 
-          (bind p (\x ->
-                bind (many (bind sep (\s ->
-                            bind p pure))) (\xs -> pure (x:xs)))) (pure [])
+          (p >>= (\x ->
+          (many (sep >>= (\s ->
+           p >>= pure))) >>= (\xs -> pure (x:xs)))) (pure [])
 
 val string :: String -> Parser (List Char)
 let string s = 
@@ -40,30 +39,30 @@ let string s =
       if null cs then pure []
       else let c   = head cs in
            let cs' = tail cs in
-           bind (char c)      (\x1 ->
-           bind (string' cs') (\x2 -> 
+           (char c) >>= (\x1 ->
+           (string' cs') >>= (\x2 -> 
            pure (c:cs')))
     in string' (toCharList s) 
 
 val quotedString :: Parser (List Char)     
-let quotedString = bind (char '"') (\x ->
-                   bind (many (sat (\x -> x /= '"'))) (\s ->
-                   bind (char '"') (\y -> pure s)))
+let quotedString = (char '"') >>= (\x ->
+                   (many (sat (\x -> x /= '"'))) >>= (\s ->
+                   (char '"') >>= (\y -> pure s)))
 
 val jsonParser :: Parser Json
 let jsonParser =
   let jsonValue =  
-     bind quotedString (\k ->  
-     bind (char ':')   (\c ->
-     bind (mplus (fmap JsonValue quotedString) jsonParser) (\v -> pure (k, v)))) in             
-  bind (string "{") (\x ->
-  bind (sepBy jsonValue (string ", ")) (\xs ->
-  bind (string "}") (\x -> pure (JsonNode xs)))) 
+     quotedString >>= (\k ->  
+     (char ':') >>= (\c ->
+     (mplus (fmap JsonValue quotedString) jsonParser) >>= (\v -> pure (k, v)))) in             
+  (string "{") >>= (\x ->
+  (sepBy jsonValue (string ", ")) >>= (\xs ->
+  (string "}") >>= (\x -> pure (JsonNode xs)))) 
  
 val parse :: String -> Json
 let parse = fst . head . runParser jsonParser . toCharList
  
-val main :: Json 
+val main :: Json     
 let main = parse "{\"firstName\":\"John\", \"lastName\":\"Doe\", \"Child\":{\"firstName\":\"Bart\"}}"
 
                 

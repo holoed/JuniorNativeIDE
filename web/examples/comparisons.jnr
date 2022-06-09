@@ -23,12 +23,12 @@ val normalize :: Double -> List Double -> List Double
 let normalize c xs = fmap (\x -> if (x == 0) then x else 100 * (x - c) / c) xs 
 
 val spotData :: String -> Maybe ((String, List String, List Double)) 
-let spotData v = bind (getData v)(\z ->    
+let spotData = getData >=> (\z ->    
                  pure (\x y c z -> (x, y, normalize c z))
                       <*> (getSymbol z)  
                       <*> (getTimestamps z) 
                       <*> (getPreviousClose z)
-                      <*> (getClose z))
+                      <*> (getClose z)) 
 
 val ticker :: String -> Async (List ((String, List String, List Double)))
 let ticker = jsonData >=> (pure . maybeToList . spotData)
@@ -38,7 +38,7 @@ let tickers = ["^IXIC", "H", "RKLB", "AMAT",
                "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
                "FB", "U", "ETSY", "TWTR"]
  
-let main = bind (fmap flatten (sequenceA (fmap ticker tickers))) renderTimeSeries 
+let main = (fmap flatten (sequenceA (fmap ticker tickers))) >>= renderTimeSeries 
   
       
                

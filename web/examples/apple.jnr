@@ -2,35 +2,33 @@ val jsonData :: String -> Async String
 let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/chart/" <> symbol)
 
 val getData :: String -> Maybe Json
-let getData = parseJson >=> 
-              getJsonValue "chart" >=> 
-              getJsonList "result" >=> 
-              (Just . head) 
+let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> listToMaybe 
               
 let getSymbol = getJsonValue "meta" >=> getJsonValue "symbol" >=> jsonToString  
   
 val getClose :: Json -> Maybe (List Double)      
 let getClose = getJsonValue "indicators" >=> 
                getJsonList "quote" >=>  
-               (Just . head) >=> 
+               listToMaybe >=> 
                getJsonList "close" >=>
-               traverse jsonToDouble                
+               traverse jsonToDouble               
    
-val getTimestamps :: Json -> Maybe (List String)
-let getTimestamps v = 
-  bind (getJsonList "timestamp" v)(\r -> 
-  fmap (fmap timeStampToDate) (traverse jsonToInt r))  
+val getTimestamps :: Json -> Maybe (List String)     
+let getTimestamps = getJsonList "timestamp" >=>  
+  (fmap (fmap timeStampToDate) . (traverse jsonToInt)) 
  
-val spotData :: String -> Maybe ((String, List String, List Double))
-let spotData v = bind (getData v)(\z -> 
-                 liftA3 (\x y z -> (x, y, z))
-                        (getSymbol z)
-                        (getTimestamps z)
-                        (getClose z))
+val spotData :: String -> Maybe ((String, List String, List Double)) 
+let spotData = getData >=> (\z ->    
+                 pure (\x y z -> (x, y, z))
+                      <*> (getSymbol z)  
+                      <*> (getTimestamps z) 
+                      <*> (getClose z))
  
-let ticker symbol = bind (jsonData symbol) (\x -> pure ((maybeToList . spotData) x))
-  
-let main = bind (ticker "AAPL") renderTimeSeries
+val ticker :: String -> Async (List ((String, List String, List Double)))
+let ticker = jsonData >=> (pure . maybeToList . spotData)
+ 
+val main :: Async Unit
+let main = (ticker "AAPL") >>= renderTimeSeries
  
       
             
