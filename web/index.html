@@ -213,8 +213,8 @@ function activatePanel(name) {
     compileToJs();
    }
    if (name == "Js") { 
-    compileToJs();
     editorOutputJs.getWrapperElement().style.display = "block";
+    compileToJs();
    }
    currentTabName = name;
 }
@@ -569,12 +569,12 @@ const keyMap = {
         fetch("compileToJs/", { method:'POST', body: code})
         .then(res => {
 	      // Handle response
+          var activeTabName = getActiveTabName();
           res.text().then(function (text) { 
             if (!text.includes("EOF")) {
                 try {
                    const json = JSON.parse(text);
                    if (json[0] != undefined) {
-                     var activeTabName = getActiveTabName();
                      if (activeTabName == "Output") {
                       var autoRun = document.getElementById("autoRunCheckBoxJavaScript");
                       if (autoRun.checked) runJs(json[0]);
@@ -582,10 +582,21 @@ const keyMap = {
                      editorCompiledJs.setValue(
                         window.js_beautify(json[0], window.js_beautify.defaultOptions())
                      );
-                   } else 
-                     editorCompiledJs.setValue(text);
+                   } else {
+                    editorCompiledJs.setValue(text);
+                     if (activeTabName == "Output") {
+                        clearPanels();
+                        editorOutput.getWrapperElement().style.display = "block";
+                        editorOutput.setValue(text);
+                     }
+                   }
                 } catch (e) {
                      editorCompiledJs.setValue(text);
+                     if (activeTabName == "Output") {
+                        clearPanels();
+                        editorOutput.getWrapperElement().style.display = "block";
+                        editorOutput.setValue(text);
+                     }
                 }
             } 
           });       
