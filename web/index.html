@@ -286,9 +286,11 @@ function dragElement(element, direction)
     {
         const clientX = e.clientX ? e.clientX : e.changedTouches[0].clientX;
         const clientY = e.clientY ? e.clientY : e.changedTouches[0].clientY;
+        const md_clientX = md.e.clientX ? md.e.clientX : md.e.changedTouches[0].clientX;
+        const md_clientY = md.e.clientY ? md.e.clientY : md.e.changedTouches[0].clientY;
         //console.log("mouse move: " + e.clientX);
-        var delta = {x: clientX - md.e.clientX,
-                     y: clientY - md.e.clientY};
+        var delta = {x: clientX - md_clientX,
+                     y: clientY - md_clientY};
 
         if (direction === "H" ) // Horizontal
         {
