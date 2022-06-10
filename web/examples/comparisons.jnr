@@ -15,12 +15,12 @@ let getPreviousClose = getRec getJsonValue ["meta", "previousClose"] >=> jsonToD
   
 val getClose :: Json -> Maybe (List Double)      
 let getClose = getJsonValue "indicators" >=> 
-               getJsonList "quote" >=>  
+               getJsonList "quote" >=>   
                listToMaybe >=> 
-               getJsonList "close" >=>
-               traverse jsonToDouble                  
-   
-val getTimestamps :: Json -> Maybe (List String)     
+               getJsonList "close" >=> 
+               traverse jsonToDouble                    
+     
+val getTimestamps :: Json -> Maybe (List String)      
 let getTimestamps = getJsonList "timestamp" >=>  
   (fmap (fmap timeStampToDate) . (traverse jsonToInt)) 
  
@@ -31,16 +31,16 @@ val spotData :: String -> Maybe ((String, List String, List Double))
 let spotData = getData >=> (\z ->    
                  pure (\x y c z -> (x, y, normalize c z))
                       <*> (getSymbol z)  
-                      <*> (getTimestamps z) 
-                      <*> (getPreviousClose z)
-                      <*> (getClose z)) 
+                      <*> (getTimestamps z)    
+                      <*> (getPreviousClose z) 
+                      <*> (getClose z))  
 
 val ticker :: String -> Async (List ((String, List String, List Double)))
 let ticker = jsonData >=> (pure . maybeToList . spotData)
  
 val tickers :: List String 
-let tickers = ["^IXIC", "H", "RKLB", "AMAT", 
-               "AAPL", "TSLA", "AMD", "MAR",   
+let tickers = ["^IXIC", "H", "RKLB", "AMAT", "MPWR",
+               "AAPL", "TSLA", "AMD", "MAR", 
                "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
                "FB", "U", "ETSY", "TWTR"]
  
