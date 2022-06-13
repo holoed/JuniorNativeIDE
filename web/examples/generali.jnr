@@ -1,0 +1,37 @@
+val jsonData :: String -> Async String
+let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/chart/" <> symbol)
+
+val getData :: String -> Maybe Json
+let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> listToMaybe 
+
+val getRec :: (Foldable a, Monad b) => (c -> d -> b d) -> a c -> d -> b d
+let getRec f = foldr1 (flip (>=>)) . fmap f 
+
+let getSymbol = getRec getJsonValue ["meta", "symbol"] >=> jsonToString  
+  
+val getClose :: Json -> Maybe (List Double)      
+let getClose = getJsonValue "indicators" >=> 
+               getJsonList "quote" >=>  
+               listToMaybe >=> 
+               getJsonList "close" >=>
+               traverse jsonToDouble               
+   
+val getTimestamps :: Json -> Maybe (List String)     
+let getTimestamps = getJsonList "timestamp" >=>  
+  (fmap (fmap timeStampToDate) . (traverse jsonToInt)) 
+  
+val spotData :: String -> Maybe ((String, List String, List Double)) 
+let spotData = getData >=> (\z ->    
+                 pure (\x y z -> (x, y, z))
+                      <*> (getSymbol z)  
+                      <*> (getTimestamps z) 
+                      <*> (getClose z))
+ 
+val ticker :: String -> Async (List ((String, List String, List Double)))
+let ticker = jsonData >=> (pure . maybeToList . spotData)
+ 
+val main :: Async Unit
+let main = (ticker "G.MI") >>= renderTimeSeries 
+ 
+      
+            
