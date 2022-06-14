@@ -17,6 +17,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.js"></script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://unpkg.com/rxjs@^7/dist/bundles/rxjs.umd.min.js"></script>
+<script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.js"></script>
 <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
 <style>
 
@@ -153,6 +154,7 @@
         <textarea id="out" name="out"></textarea>
         <canvas id="canvas" style="display: none;"></canvas>
         <div id="plotlyChart" style="display:none; width:100%; height:100%;"></div>
+        <div id="myGrid" style="display:none; width:100%; height:100%;" class="ag-theme-alpine"></div>
         <textarea id="compiledJs" name="compiledJs"></textarea>
         <textarea id="outputJs" name="outputJs"></textarea>
     </div>
@@ -222,10 +224,11 @@ function activatePanel(name) {
 }
 
 function clearPanels() {
-  var canvas = document.getElementById('canvas');
-  canvas.style.display = "none";
-  var plotlyChart = document.getElementById('plotlyChart');
-  plotlyChart.style.display = "none";
+  document.getElementById('canvas').style.display = "none";
+  document.getElementById('plotlyChart').style.display = "none";
+  var myGrid = document.getElementById('myGrid')
+  myGrid.style.display = "none";
+  myGrid.innerHTML = '';
   editorOutput.getWrapperElement().style.display = "none";
   editorCompiled.getWrapperElement().style.display = "none";
   editorTypes.getWrapperElement().style.display = "none";
