@@ -10,7 +10,7 @@ let jsonData symbol =
 
 let toData x = 
   (mapToJson . fromListToMap) 
-  [("columnDefs", columnDefs ["longName", "bid", "ask"]),
+  [("columnDefs", columnDefs ["longName", "bid", "ask", "fiftyTwoWeekHigh", "fiftyTwoWeekLow"]),
    ("rowData", listToJson x),
    ("defaultColDef", (mapToJson . fromListToMap) [
    ("sortable", stringToJson "true"),
