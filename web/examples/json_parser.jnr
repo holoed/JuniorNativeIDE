@@ -30,18 +30,20 @@ let sepBy p sep =
           (p >>= (\x ->
           (many (sep >>= (\s ->
            p >>= pure))) >>= (\xs -> pure (x:xs)))) (pure [])
-
-val string :: String -> Parser (List Char)
-let string s = 
+  
+val string :: String -> Parser String  
+let string s =  
 	let string' cs =  
-      if null cs then pure []
-      else pure (:) <*> char (head cs) <*> string' (tail cs)  
-    in string' (toCharList s) 
+      if nullStr cs then pure ""
+      else pure (\x y -> charToStr x <> y) <*> char (headStr cs) <*> string' (tailStr cs)  
+    in string' s 
 
-val quotedString :: Parser (List Char)     
+let foldStr xs = foldr1 (<>) (fmap charToStr xs)
+
+val quotedString :: Parser String     
 let quotedString = (char '"') >>= (\x ->
                    (many (sat (\x -> x /= '"'))) >>= (\s ->
-                   (char '"') >>= (\y -> pure s)))
+                   (char '"') >>= (\y -> (pure . foldStr) s)))
 
 val jsonParser :: Parser Json
 let jsonParser =
