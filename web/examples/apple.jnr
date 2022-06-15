@@ -4,10 +4,8 @@ let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/char
 val getData :: String -> Maybe Json
 let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> listToMaybe 
 
-val getRec :: (Foldable a, Monad b) => (c -> d -> b d) -> a c -> d -> b d
-let getRec f = foldr1 (flip (>=>)) . fmap f 
-
-let getSymbol = getRec getJsonValue ["meta", "symbol"] >=> jsonToString  
+val getSymbol :: Json -> Maybe String 
+let getSymbol = (foldKliesli . (fmap getJsonValue)) ["meta", "symbol"] >=> jsonToString  
   
 val getClose :: Json -> Maybe (List Double)      
 let getClose = getJsonValue "indicators" >=> 

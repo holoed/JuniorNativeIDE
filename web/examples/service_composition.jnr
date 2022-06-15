@@ -8,12 +8,7 @@ val jsonData :: String -> Async String
 let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/chart/" <> symbol)
 
 val getData :: String -> Maybe Json
-let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> listToMaybe 
-
-val getRec :: (Foldable a, Monad b) => (c -> d -> b d) -> a c -> d -> b d
-let getRec f = foldr1 (flip (>=>)) . fmap f 
-
-let getSymbol = getRec getJsonValue ["meta", "symbol"] >=> jsonToString  
+let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> listToMaybe   
  
 val jsonListToTimestamps :: Maybe (List Json) -> Async (Maybe (List String))
 let jsonListToTimestamps mxs = 
@@ -36,4 +31,4 @@ let ticker symbol = jsonData symbol >>= (\x1 ->
                pure (maybeToList (pure (\x y -> (symbol, x, y)) <*> x2 <*> x3)))))
  
 val main :: Async Unit
-let main = ticker "^IXIC" >>= renderTimeSeries
+let main = ticker "^IXIC" >>= renderTimeSeries 
