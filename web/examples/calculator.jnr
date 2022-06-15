@@ -1,7 +1,7 @@
 let zero = mkParser (\inp -> [])
 
-let item = mkParser (\inp -> if (null inp) then []
-                             else (head inp, tail inp) : [])
+let item = mkParser (\inp -> if (nullStr inp) then []
+                             else (headStr inp, tailStr inp) : [])
                              
 let sat p = item >>= (\x -> if p x then pure x else zero)
               
@@ -23,10 +23,10 @@ let many1 p = p >>= (\x ->
                 
 let bracket open p close = open  >>= (\v1 ->
                            p     >>= (\x  ->
-                           close >>= (\v2 ->
+                           close >>= (\v2 -> 
                            pure x)))
 
-let space = many (sat (\x -> x == ' '))
+let space = many (sat (\x -> x == ' ')) 
 
 let token p = p     >>= (\x ->
               space >>= (\v ->
@@ -34,13 +34,13 @@ let token p = p     >>= (\x ->
 
 let string s = 
 	let string' cs = 
-      if null cs then pure []
-      else let c   = head cs in
-           let cs' = tail cs in
+      if nullStr cs then pure ""
+      else let c   = headStr cs in
+           let cs' = tailStr cs in 
            (char c) >>= (\x1 ->
            (string' cs') >>= (\x2 ->
-           pure (c:cs')))
-    in string' (toCharList s)
+           pure (charToStr c <> cs'))) 
+    in string' s
            
 let symb cs = token (string cs)
   
@@ -54,19 +54,19 @@ let nat = (many1 digit) >>= (pure . eval)
 
 let int = 
     let negate x = 0 - x in
-	let op = or ((char '-') >>= (\v -> pure negate)) 
+	let op = or ((char '-') >>= (\v -> pure negate))  
                 (pure (\x -> x)) in
     op >>= (\f -> 
     nat >>= (\n -> pure (f n)))
 
 let lazy p = mkParser(\inp -> runParser (p ()) inp)
 
-let rest p op x = or (op >>= (\f ->
-                      p >>= (\y ->
+let rest p op x = or (op >>= (\f -> 
+                      p >>= (\y -> 
                       rest p op (f x y)))) (pure x)
 
 let chainl1 p op = p >>= (rest p op) 
-  
+   
 let chainr1 p op =
    p >>= (\x -> or (op >>= (\f ->
                    (chainr1 p op) >>= (\y ->
@@ -78,13 +78,13 @@ let ops xs = foldr1 or (xs >>= (\(p, op) -> (foo p op):[]))
 
 let addop v = ops ((symb "+", (+)) : (symb "-", (-)):[])
 
-let mulop v = ops ((symb "*", (*)) : (symb "/", (/)):[])
+let mulop v = ops ((symb "*", (*)) : (symb "/", (/)):[]) 
 
 let expr = 
-  let factor = or (token nat) (lazy (\v -> (bracket (symb "(") expr (symb ")")))) in
+  let factor = or (token int) (lazy (\v -> (bracket (symb "(") expr (symb ")")))) in
   let term = chainl1 factor (mulop ()) in
   chainl1 term (addop ()) 
 
-let main = runParser expr (toCharList "(3 + 4) * (6 - 2) / 2")    
+let main = runParser expr "(3 + 4) * (6 - 2) / 2"   
                                         
    

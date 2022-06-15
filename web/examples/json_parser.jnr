@@ -2,8 +2,8 @@ val zero :: Parser a
 let zero = mkParser (\inp -> [])
 
 val item :: Parser Char
-let item = mkParser (\inp -> if (null inp) then []
-                             else (head inp, tail inp) : [])
+let item = mkParser (\inp -> if (nullStr inp) then []
+                             else (headStr inp, tailStr inp) : [])
  
 val sat :: (Char -> Bool) -> Parser Char
 let sat p = item >>= (\x -> if p x then pure x else zero)
@@ -54,7 +54,7 @@ let jsonParser =
   (string "}") >>= (\x -> pure (JsonNode xs)))) 
  
 val parse :: String -> Json
-let parse = fst . head . runParser jsonParser . toCharList
+let parse = fst . head . runParser jsonParser 
  
 val main :: Json     
 let main = parse "{\"firstName\":\"John\", \"lastName\":\"Doe\", \"Child\":{\"firstName\":\"Bart\"}}"
