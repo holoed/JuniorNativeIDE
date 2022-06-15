@@ -212,6 +212,7 @@ function activatePanel(name) {
    }
    if (name == "Output") { 
     editorOutput.getWrapperElement().style.display = "block";
+    compileToJs();
    }
    if (name == "CompiledJs") { 
     editorCompiledJs.getWrapperElement().style.display = "block";
