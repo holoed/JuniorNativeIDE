@@ -1,3 +1,5 @@
+data ListF a b = Empty | Cons a b deriving Functor 
+
 val toListAlg :: ListF a (List a) -> List a
 let toListAlg v = 
    if isEmpty v then [] 

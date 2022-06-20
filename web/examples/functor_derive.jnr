@@ -1,8 +1,0 @@
-data L a b = E | C a b deriving Functor
-
-let alg x = 
-  if (isE x) then 1
-  else let (x1, x2) = extractC x in
-  x1 * x2  
-
-let main = cataRec alg (In (C 5 (In (C 4 (In (C 3 (In (C 2 (In (C 1 (In E)))))))))))
