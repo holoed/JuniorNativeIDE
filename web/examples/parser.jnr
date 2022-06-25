@@ -2,7 +2,7 @@
 data P a = P (String -> List (a, String)) 
 
 val runP :: P a -> String -> List (a, String)
-let runP p s = let f = extractP p in f s
+let runP p s = match p with P f -> f s
 
 -- instance Monad P where
 val bind :: P a -> (a -> P b) -> P b
