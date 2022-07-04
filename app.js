@@ -1,11 +1,17 @@
-const express = require('express');
-const path = require('path');
+import express from 'express';
+import path from 'path';
+import {fileURLToPath} from 'url';
+import routes from './routes.js'
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const port = 8080;
 //const port = 8081
 
 app.use("/", express.static(path.join(__dirname, 'web')));
-app.use('/', require('./routes'));
+app.use('/', routes);
 
 process.on('SIGINT', function() {
   console.log( "\nGracefully shutting down from SIGINT (Ctrl-C)" );
