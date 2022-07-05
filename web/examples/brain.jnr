@@ -1,0 +1,4 @@
+
+let xs = httpGet "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz"
+
+let main = parseJson <$> (\x -> "[" <> x <> "]") <$> decompress <$> xs   
