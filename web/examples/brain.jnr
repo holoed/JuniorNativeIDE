@@ -1,14 +1,25 @@
 
-let xs = httpGet "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz"
+val rawData :: Async String
+let rawData = httpGet "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz"
 
-let dataSet = (bufferToIntList . decompress) <$> xs  
+val dataSet :: Async (List Int)
+let dataSet = (bufferToIntList . decompress) <$> rawData  
 
+val toIng :: Int -> List a -> List (List (a, a, a))
 let toImg n s = 
   let sz = 28 in
   let s' = (take (sz*sz) . drop (16 + n*(sz*sz))) s in
   tail <$> split sz ((\x -> (x, x, x)) <$> s')
+ 
+val hcat :: Semigroup a => List a -> List a -> List a 
+let hcat xss yss = range (\r -> xss !! r <> yss !! r) 0 (length xss - 1)
+
+val square :: Semigroup a => List b -> (b -> c -> List a) -> c -> List a
+let square xs f s = 
+  tail (hcat (f (xs !! 0) s) (f (xs !! 1) s) <> 
+        hcat (f (xs !! 2) s) (f (xs !! 3) s))
   
-let main = (display . toImg 15) <$> dataSet 
+let main = (display . square [15, 19, 21, 32] toImg) <$> dataSet 
 
 
    
