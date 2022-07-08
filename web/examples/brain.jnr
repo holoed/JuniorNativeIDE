@@ -18,8 +18,17 @@ val square :: Semigroup a => List b -> (b -> c -> List a) -> c -> List a
 let square xs f s = 
   tail (hcat (f (xs !! 0) s) (f (xs !! 1) s) <> 
         hcat (f (xs !! 2) s) (f (xs !! 3) s))
+        
+let squares x1 x2 x3 x4 =  
+    tail (hcat x1 x2 <> 
+          hcat x3 x4)
+          
+let image s = squares (square [10, 14, 19, 15] toImg s)
+                      (square [1, 32, 21, 26] toImg s)
+                      (square [40, 21, 26, 32] toImg s)
+                      (square [18, 22, 21, 32] toImg s)
   
-let main = (display . square [15, 19, 21, 32] toImg) <$> dataSet 
+let main = (display . image) <$> dataSet 
 
 
    
