@@ -4,11 +4,11 @@ let xs = httpGet "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz"
 let dataSet = (bufferToIntList . decompress) <$> xs  
 
 let toImg n s = 
-  range (\r -> 
-  range (\x -> let v = s !! (n*28*28 + 16 + r*28 + x) 
-               in (v, v, v)) 1 27) 0 27
+  let sz = 28 in
+  let s' = (take (sz*sz) . drop (16 + n*(sz*sz))) s in
+  tail <$> split sz ((\x -> (x, x, x)) <$> s')
+  
+let main = (display . toImg 15) <$> dataSet 
 
-let main = (display . toImg 15) <$> dataSet
 
-
- 
+   
