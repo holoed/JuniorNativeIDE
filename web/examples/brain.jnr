@@ -8,7 +8,7 @@ let dataSet = (bufferToIntList . decompress) <$> rawData
 val toIng :: Int -> List a -> List (List (a, a, a))
 let toImg n s = 
   let sz = 28 in
-  let s' = (take (sz*sz) . drop (16 + n*(sz*sz))) s in
+  let s' = (take (sz^2) . drop (16 + n*sz^2)) s in
   tail <$> split sz ((\x -> (x, x, x)) <$> s')
  
 val hcat :: Semigroup a => List a -> List a -> List a 
@@ -24,7 +24,7 @@ let squares x1 x2 x3 x4 =
           hcat x3 x4)
           
 let image s = squares (square [10, 14, 19, 15] toImg s)
-                      (square [1, 32, 21, 26] toImg s)
+                      (square [ 1, 32, 21, 26] toImg s) 
                       (square [40, 21, 26, 32] toImg s)
                       (square [18, 22, 21, 32] toImg s)
   
