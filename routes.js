@@ -58,18 +58,32 @@ router.get('/libTypes', jsonParser, function(req, res) {
     });  
 });
 
+const atob = (base64) => {
+    return Buffer.from(base64, 'base64').toString('binary');
+};
+
+router.post('/eval', jsonParser, async function(req,res) {
+    const code = atob(req.body.code)
+    const ret = eval(code + "\n\n" + `applyClosure(${req.body.fn}, ${req.body.arg})`)
+    res.status(200).send(JSON.stringify(ret))
+});
+
 router.post('/fetch', jsonParser, async function(req, res) {
-    const reqUrl = req.body.url;
-    console.log(reqUrl);
-    if (reqUrl.endsWith(".gz")) {
-        const response = await fetch(reqUrl);
-        const body = await response.arrayBuffer();
-        res.send(base64ArrayBuffer(body)).end();
-    } else {
-        const response = await fetch(reqUrl);
-        const body = await response.text()
-        res.send(body).end();
-    } 
+    try {
+        const reqUrl = req.body.url;
+        console.log(reqUrl);
+        if (reqUrl.endsWith(".gz")) {
+            const response = await fetch(reqUrl);
+            const body = await response.arrayBuffer();
+            res.send(base64ArrayBuffer(body)).end();
+        } else {
+            const response = await fetch(reqUrl);
+            const body = await response.text()
+            res.send(body).end();
+        } 
+    } catch (e) {
+        res.sendStatus(500).end();
+    }
 });
 
 function base64ArrayBuffer(arrayBuffer) {
