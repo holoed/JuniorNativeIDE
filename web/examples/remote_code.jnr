@@ -1,0 +1,7 @@
+val inc :: Int -> Int
+let inc x = x * x
+
+val square :: Int -> Int
+let square x = x^2
+
+let main = sequenceA (remote (quote ((\x -> (inc . square) x))) <$> [1,2,3,4,5])                                          
