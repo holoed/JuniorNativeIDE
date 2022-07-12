@@ -1,0 +1,39 @@
+val posToCoord :: (Int, Int) -> (Int, Int)
+let posToCoord (sz, x) =
+    let row = x / sz in
+    let col = x - sz * row in
+    (row, col)
+ 
+val add :: ((Double, Double),(Double, Double)) -> (Double, Double)
+let add ((x1, y1),(x2, y2)) = (x1 + x2, y1 + y2)
+
+val mul :: ((Double, Double),(Double, Double)) -> (Double, Double)
+let mul ((x1, y1),(x2, y2)) = ((x1 * x2 - y1 * y2), (x1 * y2 + y1 * x2))
+   
+val norm :: (Double, Double) -> Double
+let norm (re, im) = re * re + im * im
+ 
+val mPoint :: (Int, (Double, Double), (Double, Double)) -> Int
+let mPoint (i, c, z) =
+  if (i == 65 || norm z > 4.0) then i else mPoint (i + 1, c, add (mul (z, z), c))
+      
+val mandelbrot :: (Int, (Int, Int)) -> (Int, Int, Int)
+let mandelbrot (s, (x, y)) =
+  let x' = (2.0 * toDouble y / (toDouble s * 18)) + 0.3 in
+  let y' = (2.0 * toDouble x / (toDouble s * 18)) + 0.3 in
+  let i' = mPoint (0, (x', y'), (0.0, 0.0)) in
+  let f i = 128 + truncate (128.0 * (cos (toDouble i * 0.3))) in     
+  (f i', f (i' + 16), f (i' + 32))
+  
+val pixSize :: Int
+let pixSize = 3000 
+ 
+val f :: List Int -> List (Int, Int, Int) 
+let f xs = (\x -> mandelbrot (pixSize, (posToCoord (pixSize, x)))) <$> xs
+
+val rendered :: Async (List (Int, Int, Int)) 
+let rendered = 
+  let size = pixSize * pixSize in
+  flatten <$> sequenceA ((remote (quote f)) <$> (split (size / 8) (range id 0 size)))
+
+let main = rendered >>= display . split pixSize                                                
