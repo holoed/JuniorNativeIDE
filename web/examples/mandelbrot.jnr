@@ -27,8 +27,8 @@ let mandelbrot (s, (x, y)) =
  
 val render :: ((Int, (Int, Int)) -> (Int, Int, Int)) -> Int -> List (List (Int, Int, Int))
 let render effect pixSize =
-let f x = effect (pixSize, (posToCoord (pixSize, x))) in
-    split pixSize (range f 0 (pixSize * pixSize))
+  let f x = effect (pixSize, (posToCoord (pixSize, x))) in
+  split pixSize (range f 0 (pixSize * pixSize))
 
 val main :: Async Unit
 let main = display (render mandelbrot 500)                
