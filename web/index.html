@@ -562,9 +562,7 @@ const keyMap = {
                                       "\n\n})();"
             const t0 = performance.now();
             
-            const remoteCodeWithMain = JSON.parse(libCodeJson) + "\n\n" + jsCode
-            const remoteCode = remoteCodeWithMain.substring(remoteCodeWithMain.lastIndexOf("\n") + 1, -1 )
-            const scriptBase64 = window.btoa(remoteCode)
+            const scriptBase64 = window.btoa(jsCode);
 
             const ret = eval(`const codeBase64 = "${scriptBase64}";\n\n` + script);
             if (ret instanceof Promise) {
