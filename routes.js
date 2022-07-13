@@ -5,7 +5,7 @@ import fetch from 'node-fetch';
 
 const router = express.Router();
 const textParser = bodyParser.text();
-const jsonParser = bodyParser.json();
+const jsonParser = bodyParser.json({ limit: '200mb'});
 
 //const url = "http://localhost:8080"
 const url = "http://junior-type.default.svc.cluster.local"
@@ -63,9 +63,33 @@ const atob = (base64) => {
 };
 
 router.post('/eval', jsonParser, async function(req,res) {
-    const code = atob(req.body.code)
-    const ret = eval(code + "\n\n" + `applyClosure(${req.body.fn}, ${req.body.arg})`)
-    res.status(200).send(JSON.stringify(ret))
+    request.get({ headers: {'content-type' : 'text/plain'}
+    , url: url + "/libJs" }
+    , function(error, response, libJs){ 
+        const codeWithMain = atob(req.body.code)
+        var code = codeWithMain.substring(codeWithMain.lastIndexOf("\n") + 1, -1 )
+        const reFn = new RegExp(`const ${req.body.fn} [^;]*`)
+        const matches = codeWithMain.match(reFn)
+        if (matches && matches.length > 0 && code.indexOf(`const ${req.body.fn}`) == -1) {
+            // console.log(`codeWithMain ## ${codeWithMain} ##`)
+            var endIndex = codeWithMain.indexOf(matches[0])
+            var prefix = "const main = function () {";
+            var startIndex = codeWithMain.indexOf(prefix);
+            // console.log(`startIndex ## ${startIndex} ##`)
+            // console.log(`startIndex ## ${endIndex} ##`)
+            code = code + "\n\n" + codeWithMain.substring(startIndex + prefix.length, endIndex) +"\n\n" + matches[0]
+            // console.log(`Modified code \n\n ${code}`)
+        }
+        try {
+            const ret = eval(JSON.parse(libJs) + "\n\n" + code + "\n\n" + `applyClosure(${req.body.fn}, ${req.body.arg})`)
+            // console.log(`fn(${req.body.arg}) = ${JSON.stringify(ret)}`)
+            console.log("success")
+            res.status(200).send(JSON.stringify(ret))
+        } catch (e) {
+            console.log(e)
+            res.status(500).send(e.toString)
+        }
+    })
 });
 
 router.post('/fetch', jsonParser, async function(req, res) {
