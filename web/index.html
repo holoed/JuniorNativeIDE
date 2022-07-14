@@ -130,6 +130,8 @@
               <a onclick="openExample('dataGrid.jnr')">DataGrid</a>
               <a onclick="openExample('parser.jnr')">Parser</a>
               <a onclick="openExample('brain.jnr')">Brain</a>
+              <a onclick="openExample('remote_code.jnr')">Remote Code</a>
+              <a onclick="openExample('remote_mandelbrot.jnr')">Distributed Mandelbrot</a>
             </div>
         </div>
         <div class="w3-bar-item" style="flex-grow: 1;"></div>
@@ -561,7 +563,10 @@ const keyMap = {
                                       "\n\n" + jsCode.replace("const main = ", "return ") + 
                                       "\n\n})();"
             const t0 = performance.now();
-            const ret = eval(script);
+            
+            const scriptBase64 = window.btoa(jsCode);
+
+            const ret = eval(`const codeBase64 = "${scriptBase64}";\n\n` + script);
             if (ret instanceof Promise) {
               ret.then(x => {
                 var retStr = JSON.stringify(x);

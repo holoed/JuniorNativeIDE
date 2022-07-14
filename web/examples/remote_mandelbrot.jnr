@@ -19,16 +19,21 @@ let mPoint (i, c, z) =
       
 val mandelbrot :: (Int, (Int, Int)) -> (Int, Int, Int)
 let mandelbrot (s, (x, y)) =
-  let x' = (4.0 * toDouble y / toDouble s) - 2.5 in
-  let y' = (4.0 * toDouble x / toDouble s) - 2.0 in
+  let x' = (2.0 * toDouble y / (toDouble s * 18)) + 0.3 in
+  let y' = (2.0 * toDouble x / (toDouble s * 18)) + 0.3 in
   let i' = mPoint (0, (x', y'), (0.0, 0.0)) in
   let f i = 128 + truncate (128.0 * (cos (toDouble i * 0.3))) in     
   (f i', f (i' + 16), f (i' + 32))
+  
+val pixSize :: Int
+let pixSize = 500 
  
-val render :: ((Int, (Int, Int)) -> (Int, Int, Int)) -> Int -> List (List (Int, Int, Int))
-let render effect pixSize =
-  let f x = effect (pixSize, (posToCoord (pixSize, x))) in
-  split pixSize (range f 0 (pixSize * pixSize))
+val f :: List Int -> List (Int, Int, Int) 
+let f xs = (\x -> mandelbrot (pixSize, (posToCoord (pixSize, x)))) <$> xs
 
-val main :: Async Unit
-let main = display (render mandelbrot 500)                
+val rendered :: Async (List (Int, Int, Int)) 
+let rendered = 
+  let size = pixSize * pixSize in
+  flatten <$> sequenceA ((remote (quote f)) <$> (split (size / 8) (range id 0 size)))
+
+let main = rendered >>= display . split pixSize                                                

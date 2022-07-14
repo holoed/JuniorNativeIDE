@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = 8080;
-//const port = 8081
+//const port = process.env.PORT;
 
 app.use("/", express.static(path.join(__dirname, 'web')));
 app.use('/', routes);
