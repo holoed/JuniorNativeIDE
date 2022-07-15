@@ -31,9 +31,9 @@ let pixSize = 500
 val f :: List Int -> List (Int, Int, Int) 
 let f xs = (\x -> mandelbrot (pixSize, (posToCoord (pixSize, x)))) <$> xs
 
-val rendered :: Async (List (Int, Int, Int)) 
-let rendered = 
+val rendered :: Unit -> Async (List (Int, Int, Int)) 
+let rendered x = 
   let size = pixSize * pixSize in
   flatten <$> sequenceA ((remote (quote f)) <$> (split (size / 8) (range id 0 size)))
 
-let main = rendered >>= display . split pixSize                                                
+let main = (rendered ()) >>= display . split pixSize                                                 
