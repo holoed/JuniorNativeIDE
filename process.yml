@@ -1,0 +1,9 @@
+apps:
+  - script   : ./app.js
+    name     : 'junior-web'
+    instances: 4
+    exec_mode: cluster
+    watch  : true
+    env    :
+      NODE_ENV: development
+      PORT : 8000

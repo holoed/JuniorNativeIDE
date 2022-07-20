@@ -2,6 +2,9 @@
 # https://hub.docker.com/_/node
 FROM node:18-slim
 
+# Install PM2
+RUN npm install --global pm2
+
 # Create and change to the app directory.
 WORKDIR /usr/src/app
 
@@ -13,8 +16,11 @@ COPY package*.json ./
 # Install production dependencies.
 RUN npm install --only=production
 
+# Expose the listening port of your app
+EXPOSE 8000
+
 # Copy local code to the container image.
 COPY . ./
 
 # Run the web service on container startup.
-CMD [ "node", "app.js" ]
+CMD ["pm2-runtime", "process.yml"]
