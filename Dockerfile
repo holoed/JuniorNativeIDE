@@ -17,7 +17,7 @@ COPY package*.json ./
 RUN npm install --only=production
 
 # Expose the listening port of your app
-EXPOSE 8000
+EXPOSE 8080
 
 # Copy local code to the container image.
 COPY . ./
