@@ -98,7 +98,7 @@ function evaluate(libJs, req, res) {
         res.status(200).send(JSON.stringify(ret))
     } catch (e) {
         console.log(e)
-        res.status(500).send(e.toString)
+        res.status(500).send(e)
     }
 }
 
