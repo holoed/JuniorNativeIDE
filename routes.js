@@ -5,7 +5,7 @@ import fetch from 'node-fetch';
 
 const router = express.Router();
 const textParser = bodyParser.text();
-const jsonParser = bodyParser.json({ limit: '200mb'});
+const jsonParser = bodyParser.json({ limit: '500mb'});
 
 //const url = "http://localhost:8080"
 const url = "http://junior-type.default.svc.cluster.local"
