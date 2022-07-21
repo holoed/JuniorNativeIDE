@@ -62,7 +62,25 @@ const atob = (base64) => {
     return Buffer.from(base64, 'base64').toString('binary');
 };
 
+function msToTime(s) {
+    // Pad to 2 or 3 digits, default is 2
+    function pad(n, z) {
+      z = z || 2;
+      return ('00' + n).slice(-z);
+    }
+
+    var ms = s % 1000;
+    s = (s - ms) / 1000;   
+    var secs = s % 60;
+    s = (s - secs) / 60;
+    var mins = s % 60;
+    var hrs = (s - mins) / 60;
+
+    return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + pad(ms, 3);
+}
+
 function evaluate(libJs, req, res) {
+    const t0 = performance.now();
     const codeWithMain = atob(req.body.code)
     var code = codeWithMain.substring(codeWithMain.lastIndexOf("\n") + 1, -1 )
     const reFn = new RegExp(`const ${req.body.fn} [^;]*`)
@@ -75,7 +93,8 @@ function evaluate(libJs, req, res) {
     }
     try {
         const ret = eval(JSON.parse(libJs) + "\n\n" + code + "\n\n" + `applyClosure(${req.body.fn}, ${req.body.arg})`)
-        console.log("success")
+        const t1 = performance.now();
+        console.log(`Calc took ${msToTime(t1 - t0)}`);
         res.status(200).send(JSON.stringify(ret))
     } catch (e) {
         console.log(e)
