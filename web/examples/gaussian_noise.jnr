@@ -1,0 +1,13 @@
+let pi = 3.14159265359
+
+let gauss scale = 
+  randomIO >>= (\x1 ->
+  randomIO >>= (\x2 ->
+  pure (scale * sqrt (-2 * log x1) * cos (2 * pi * x2))))
+
+let n = 1000
+
+let xs = range show 0 n
+let mys = sequenceA (range (\v -> gauss 0.01) 0 n)
+
+let main = mys >>= (\ys -> pure (renderTimeSeries [("Gaussian noise", xs, ys)]))

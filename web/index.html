@@ -130,6 +130,7 @@
               <a onclick="openExample('dataGrid.jnr')">DataGrid</a>
               <a onclick="openExample('parser.jnr')">Parser</a>
               <a onclick="openExample('brain.jnr')">Brain</a>
+              <a onclick="openExample('gaussian_noise.jnr')">Gaussian Noise</a>
               <a onclick="openExample('remote_code.jnr')">Remote Code</a>
               <a onclick="openExample('remote_mandelbrot.jnr')">Distributed Mandelbrot</a>
             </div>
@@ -574,6 +575,14 @@ const keyMap = {
                 document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
                 editorOutputJs.setValue(`Promise resolved to:\r\n${retStr == undefined ? "()" : retStr}`);  
               }) 
+            } else if (ret != undefined && ret.constructor != undefined && ret.constructor.name == 'IO') {
+              ret.run(0).then(([x, world]) => {
+                console.log(`World ${world}`)
+                var retStr = JSON.stringify(x);
+                const t1 = performance.now();
+                document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
+                editorOutputJs.setValue(`Promise resolved to:\r\n${retStr == undefined ? "()" : retStr}`);  
+              })
             } else {
               var retStr = JSON.stringify(ret);
               const t1 = performance.now();
