@@ -26,7 +26,7 @@ let mandelbrot (s, (x, y)) =
   (f i', f (i' + 16), f (i' + 32))
   
 val pixSize :: Int
-let pixSize = 500 
+let pixSize = 1000 
  
 val f :: List Int -> List (Int, Int, Int) 
 let f xs = (\x -> mandelbrot (pixSize, (posToCoord (pixSize, x)))) <$> xs
@@ -34,6 +34,6 @@ let f xs = (\x -> mandelbrot (pixSize, (posToCoord (pixSize, x)))) <$> xs
 val rendered :: Unit -> Async (List (Int, Int, Int)) 
 let rendered x = 
   let size = pixSize * pixSize in
-  flatten <$> sequenceA ((remote (quote f)) <$> (split (size / 8) (range id 0 size)))
+  flatten <$> sequenceA ((remote (quote f)) <$> (split (size / 16) (range id 0 size)))
 
-let main = (rendered ()) >>= display . split pixSize                                                 
+let main = (rendered ()) >>= display . split pixSize                                                   
