@@ -1,0 +1,33 @@
+let pi = 3.14159265359
+
+let gauss scale = 
+  randomIO >>= (\x1 ->
+  randomIO >>= (\x2 ->
+  pure (scale * sqrt (-2 * log x1) * cos (2 * pi * x2))))
+  
+val newBrain :: List Int -> IO (List (List Double, List (List Double)))
+let newBrain szs = 
+  let ts = tail szs in
+  zip (flip replicate 1 <$> ts) <$>
+  zipWithM (\m n -> replicateM n (replicateM m (gauss 0.01))) szs ts
+
+val relu :: Double -> Double
+let relu = max 0
+
+val relu' :: (Ord a, Num a, Num p) => a -> p
+let relu' x = if x < 0 then 0 else 1
+
+val zLayer :: List Double -> (List Double, List (List Double)) -> List Double
+let zLayer as (bs, wvs) = zipWith (+) bs ((sum . zipWith (*) as) <$> wvs)
+
+val feed :: List Double -> List (List Double, List (List Double)) -> List Double
+let feed = foldl (((.) ((<$>) relu)) . zLayer)
+
+val revaz :: List Double -> List (List Double, List (List Double)) -> (List (List Double), List (List Double))
+let revaz xv = foldl (\(avs, zs) (bs, wms) -> 
+               let av = head avs in
+               let zs' = zLayer av (bs, wms) in (((relu <$> zs'):avs), (zs':zs))) ([xv], [])
+
+let main = newBrain [3, 4, 2]
+
+ 
