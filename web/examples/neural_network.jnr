@@ -27,7 +27,45 @@ val revaz :: List Double -> List (List Double, List (List Double)) -> (List (Lis
 let revaz xv = foldl (\(avs, zs) (bs, wms) -> 
                let av = head avs in
                let zs' = zLayer av (bs, wms) in (((relu <$> zs'):avs), (zs':zs))) ([xv], [])
+               
+val dCost :: (Num a, Ord a) => a -> a -> a              
+let dCost a y = 
+  if y == 1 && a >= y then 0 else a - y
 
-let main = newBrain [3, 4, 2]
+val deltas :: List Double -> List Double -> List ((List Double, List (List Double))) -> (List (List Double), List (List Double))
+let deltas xv yv layers = 
+  let (avs, zvs) = revaz xv layers in
+  let (zv, zvs') = (head zvs, tail zvs) in
+  let delta0 = zipWith (*) (zipWith dCost (head avs) yv) (relu' <$> zv) in
+  let f wms zvs dvs =
+    if (null zvs) then dvs else
+    let (wm, wms') = (head wms, tail wms) in
+    let (zv, zvs') = (head zvs, tail zvs) in
+    f wms' zvs' ((\x -> x:dvs) (zipWith (*) ((\row -> sum (zipWith (*) row (head dvs))) <$> wm) (relu' <$> zv))) in
+  (reverse avs, f ((transpose . snd) <$> reverse layers) zvs' [delta0])
 
+val eta :: Double
+let eta = 0.002
  
+val descend :: List Double -> List Double -> List Double
+let descend av dv = zipWith (-) av ((\x -> eta * x) <$> dv)
+
+val learn :: List Double -> List Double -> List ((List Double, List (List Double))) -> List ((List Double, List (List Double)))
+let learn xv yv layers = 
+  let (avs, dvs) = deltas xv yv layers in 
+  zip (zipWith descend (fst <$> layers) dvs) 
+    (zipWith3 (\wvs av dv -> zipWith (\wv d -> descend wv ((\x -> d * x) <$> av)) wvs dv)
+      (snd <$> layers) avs dvs)
+
+val xorDef :: List (List Double, List Double)
+let xorDef = [([0,0],[0]),
+              ([0,1],[1]),
+              ([1,0],[1]),
+              ([1,1],[0])]
+               
+let trainingData = flatten (range (\v -> xorDef) 0 100000000)
+
+let last = head . reverse
+
+let main = (\b -> let b' = last (scanl (\b (x, y) -> learn x y b) b xorDef) in
+                  feed [1, 0] b') <$> newBrain [2, 2, 1]  
