@@ -1,71 +1,32 @@
-let pi = 3.14159265359
+data Layer k = InputLayer 
+             | DenseLayer (List (List Double)) (List Double) k 
+             deriving Functor
+             
+val brain :: Fix Layer
+let brain = In (DenseLayer [[20,20]] [-30] (In (DenseLayer [[20,20],[-20,-20]] [-10,30] (In InputLayer))))
 
-let gauss scale = 
-  randomIO >>= (\x1 ->
-  randomIO >>= (\x2 ->
-  pure (scale * sqrt (-2 * log x1) * cos (2 * pi * x2))))
-  
-val newBrain :: List Int -> IO (List (List Double, List (List Double)))
-let newBrain szs = 
-  let ts = tail szs in
-  zip (flip replicate 1 <$> ts) <$>
-  zipWithM (\m n -> replicateM n (replicateM m (gauss 0.01))) szs ts
+val sigmoid :: List Double -> List Double
+let sigmoid = fmap (\x -> 1 / (1 + exp (0 - x)))
 
-val relu :: Double -> Double
-let relu = max 0
+-- vector addition
+val add :: List Double -> List Double -> List Double
+let add xs ys = zipWith (+) xs ys
 
-val relu' :: (Ord a, Num a, Num p) => a -> p
-let relu' x = if x < 0 then 0 else 1
+-- matrix-vector multiplication
+val mul :: List (List Double) -> List Double -> List Double
+let mul xss ys = fmap (sum . zipWith (*) ys) xss
 
-val zLayer :: List Double -> (List Double, List (List Double)) -> List Double
-let zLayer as (bs, wvs) = zipWith (+) bs ((sum . zipWith (*) as) <$> wvs)
+val algfwd :: Layer (List Double -> List (List Double)) -> (List Double -> List (List Double))
+let algfwd v = match v with
+            | InputLayer -> \a0 -> [a0]
+            | DenseLayer wl bl forwardPass -> 
+              (\as -> let (a, as') = (head as, tail as) in
+                      let al = sigmoid (add (mul wl a) bl) in
+                      (al:a:as')) . forwardPass
 
-val feed :: List Double -> List (List Double, List (List Double)) -> List Double
-let feed = foldl (((.) ((<$>) relu)) . zLayer)
-
-val revaz :: List Double -> List (List Double, List (List Double)) -> (List (List Double), List (List Double))
-let revaz xv = foldl (\(avs, zs) (bs, wms) -> 
-               let av = head avs in
-               let zs' = zLayer av (bs, wms) in (((relu <$> zs'):avs), (zs':zs))) ([xv], [])
-               
-val dCost :: (Num a, Ord a) => a -> a -> a              
-let dCost a y = 
-  if y == 1 && a >= y then 0 else a - y
-
-val deltas :: List Double -> List Double -> List ((List Double, List (List Double))) -> (List (List Double), List (List Double))
-let deltas xv yv layers = 
-  let (avs, zvs) = revaz xv layers in
-  let (zv, zvs') = (head zvs, tail zvs) in
-  let delta0 = zipWith (*) (zipWith dCost (head avs) yv) (relu' <$> zv) in
-  let f wms zvs dvs =
-    if (null zvs) then dvs else
-    let (wm, wms') = (head wms, tail wms) in
-    let (zv, zvs') = (head zvs, tail zvs) in
-    f wms' zvs' ((\x -> x:dvs) (zipWith (*) ((\row -> sum (zipWith (*) row (head dvs))) <$> wm) (relu' <$> zv))) in
-  (reverse avs, f ((transpose . snd) <$> reverse layers) zvs' [delta0])
-
-val eta :: Double
-let eta = 0.002
+val calc :: Fix Layer -> List Double -> List (List Double)
+let calc = cataRec algfwd
  
-val descend :: List Double -> List Double -> List Double
-let descend av dv = zipWith (-) av ((\x -> eta * x) <$> dv)
+let main = head . (calc brain) <$> [[0,0],[0,1],[1,0],[1,1]]
 
-val learn :: List Double -> List Double -> List ((List Double, List (List Double))) -> List ((List Double, List (List Double)))
-let learn xv yv layers = 
-  let (avs, dvs) = deltas xv yv layers in 
-  zip (zipWith descend (fst <$> layers) dvs) 
-    (zipWith3 (\wvs av dv -> zipWith (\wv d -> descend wv ((\x -> d * x) <$> av)) wvs dv)
-      (snd <$> layers) avs dvs)
-
-val xorDef :: List (List Double, List Double)
-let xorDef = [([0,0],[0]),
-              ([0,1],[1]),
-              ([1,0],[1]),
-              ([1,1],[0])]
-               
-let trainingData = flatten (range (\v -> xorDef) 0 100000000)
-
-let last = head . reverse
-
-let main = (\b -> let b' = last (scanl (\b (x, y) -> learn x y b) b xorDef) in
-                  feed [1, 0] b') <$> newBrain [2, 2, 1]  
+      
