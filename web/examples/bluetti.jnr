@@ -1,17 +1,27 @@
-val jsonData :: Async String
-let jsonData = httpGet ("http://192.168.1.143:8000/bluetti_2022-10-10.log") 
+val jsonData :: String -> Async String
+let jsonData s = httpGet ("http://192.168.1.143:8000/bluetti_state_AC200M-2229000047153_" <> s <> "_2022-10-10.log") 
 
-let getData name = flatten . ((<$>) (maybeToList . flatten . ((<$>) (getJsonValue name)) . parseJson))
+val getJsonData :: String -> List String -> List Json
+let getJsonData name = flatten . ((<$>) (maybeToList . flatten . ((<$>) (getJsonValue name)) . parseJson))
 
 val timestamps :: List String -> Maybe (List Int)
-let timestamps = sequenceA . ((<$>) jsonToInt) . getData "timestamp"
+let timestamps = sequenceA . ((<$>) jsonToInt) . getJsonData "timestamp"
 
 val pv_power :: List String -> Maybe (List Double)
-let pv_power = sequenceA . ((<$>) jsonToDouble) . getData "dc_input_power"
+let pv_power = sequenceA . ((<$>) jsonToDouble) . getJsonData "value"
 
-let main = (maybeToList . (\xs -> (pure (\x y -> ("Bluetti", (timeStampToDate . (\v -> v / 1000)) <$> x, y)) 
+val getData :: (String, Double) -> Async (List ((String, List String, List Double)))
+let getData (s, i) = (maybeToList . (\xs -> (pure (\x y -> (s, timeStampToDate <$> x, (\v -> v / i) <$> y)) 
                         <*> (timestamps xs) 
-                        <*> (pv_power xs))) . lines) <$> jsonData >>= renderTimeSeries
+                        <*> (pv_power xs))) . lines) <$> jsonData s
+
+val topics :: List (String, Double)
+let topics = [
+               ("dc_input_power", 1) --, 
+--               ("total_battery_percent", 100)
+             ]
+
+let main = flatten <$> sequenceA (getData <$> topics) >>= renderTimeSeries
  
       
-                        
+                                        
