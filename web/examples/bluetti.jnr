@@ -1,17 +1,17 @@
 val jsonData :: Async String
-let jsonData = httpGet ("http://192.168.1.143:8000/bluetti_2022-10-09.log") 
+let jsonData = httpGet ("http://192.168.1.143:8000/bluetti_2022-10-10.log") 
 
 let getData name = flatten . ((<$>) (maybeToList . flatten . ((<$>) (getJsonValue name)) . parseJson))
 
-val timestamps :: List String -> Maybe (List String)
-let timestamps = sequenceA . ((<$>) jsonToString) . getData "timestamp"
+val timestamps :: List String -> Maybe (List Int)
+let timestamps = sequenceA . ((<$>) jsonToInt) . getData "timestamp"
 
 val pv_power :: List String -> Maybe (List Double)
 let pv_power = sequenceA . ((<$>) jsonToDouble) . getData "dc_input_power"
 
-let main = (maybeToList . (\xs -> (pure (\x y -> ("Bluetti", x, y)) 
+let main = (maybeToList . (\xs -> (pure (\x y -> ("Bluetti", (timeStampToDate . (\v -> v / 1000)) <$> x, y)) 
                         <*> (timestamps xs) 
                         <*> (pv_power xs))) . lines) <$> jsonData >>= renderTimeSeries
  
       
-                       
+                        

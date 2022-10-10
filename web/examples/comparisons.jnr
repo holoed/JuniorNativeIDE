@@ -39,7 +39,7 @@ val tickers :: List String
 let tickers = ["^IXIC", "H", "RKLB", "AMAT", "MPWR",
                "AAPL", "TSLA", "AMD", "MAR", 
                "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
-               "META", "U", "ETSY", "TWTR"]
+               "META", "U", "ETSY", "TWTR", "HAL", "APA"]
  
 val main :: Async Unit
 let main = (fmap flatten (traverse ticker tickers)) >>= renderTimeSeries 
