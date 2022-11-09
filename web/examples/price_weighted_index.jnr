@@ -36,13 +36,17 @@ val ticker :: String -> Async (List ((String, List String, List Double)))
 let ticker = jsonData >=> (pure . maybeToList . spotData)
  
 val tickers :: List String 
-let tickers = ["^IXIC", "H", "RKLB", "AMAT", "MPWR",
+let tickers = ["H", "RKLB", "AMAT", "MPWR",
                "AAPL", "TSLA", "AMD", "MAR", 
                "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
-               "META", "U", "ETSY", "TWTR", "HAL", "APA"]
- 
+               "META", "U", "ETSY", "TWTR", "HAL", "APA", "GD", "MU"]
+               
+val avg :: List ((String, List String, List Double)) -> List ((String, List String, List Double))
+let avg xs = (\(n, xs, ys) -> (n, xs, (\y -> y / toDouble (length xs)) <$> ys)) <$> 
+ [foldr1 (\(n, xs, ys) (n', xs', ys') -> ("my index", xs, zipWith (+) ys ys')) xs]
+
 val main :: Async Unit
-let main = (fmap flatten (traverse ticker tickers)) >>= renderTimeSeries 
+let main = (fmap (avg . flatten) (traverse ticker tickers)) >>= renderTimeSeries 
   
       
                
