@@ -140,8 +140,10 @@
         </div>
         <div class="w3-bar-item" style="flex-grow: 1;"></div>
         <div class="w3-bar-item"><p id="bench"></p></div>
-        <div class="w3-bar-item" style="flex-grow: 0;">
-            <input id="autoRunCheckBoxJavaScript" type="checkbox" checked>auto run js</input>
+        <div class="w3-bar-item" style="flex-grow: 0; white-space: nowrap;">
+            <input id="autoRunCheckBoxJavaScript" type="checkbox" checked> auto run js</input>
+            &nbsp; &nbsp; 
+            <input id="tickCheckBoxJavaScript" type="checkbox" unchecked onchange="changeTicking(event)"> tick 30s</input>
         </div>
         <div style="text-align: right;">
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Prelude')">Prelude</button>
@@ -237,7 +239,7 @@ function activatePanel(name) {
 function clearPanels() {
   document.getElementById('canvas').style.display = "none";
   document.getElementById('plotlyChart').style.display = "none";
-  var myGrid = document.getElementById('myGrid')
+  const myGrid = document.getElementById('myGrid')
   myGrid.style.display = "none";
   myGrid.innerHTML = '';
   editorOutput.getWrapperElement().style.display = "none";
@@ -257,10 +259,9 @@ function getActiveTabName() {
 }
 
 function openTab(evt, tabName) {
-  var i, tablinks;
   activatePanel(tabName);
-  tablinks = document.getElementsByClassName("tablink");
-  for (i = 0; i < tablinks.length; i++) {
+  const tablinks = document.getElementsByClassName("tablink");
+  for (var i = 0; i < tablinks.length; i++) {
     tablinks[i].className = tablinks[i].className.replace(" w3-red", "");
   }
   evt.currentTarget.className += " w3-red";
@@ -269,7 +270,7 @@ function openTab(evt, tabName) {
 // A function is used for dragging and moving
 function dragElement(element, direction)
 {
-    var   md; // remember mouse down info
+    var md; // remember mouse down info
     const first  = document.getElementById("first");
     const second = document.getElementById("second");
 
@@ -305,7 +306,7 @@ function dragElement(element, direction)
         const md_clientX = md.e.clientX ? md.e.clientX : md.e.changedTouches[0].clientX;
         const md_clientY = md.e.clientY ? md.e.clientY : md.e.changedTouches[0].clientY;
         //console.log("mouse move: " + e.clientX);
-        var delta = {x: clientX - md_clientX,
+        const delta = {x: clientX - md_clientX,
                      y: clientY - md_clientY};
 
         if (direction === "H" ) // Horizontal
@@ -325,7 +326,7 @@ function dragElement(element, direction)
 dragElement( document.getElementById("separator"), "H" );
 
 function showTooltip(e, content) {
-    var tt = document.createElement("div");
+    const tt = document.createElement("div");
     tt.className = "CodeMirror-hover-tooltip";
     if (typeof content == "string") {
         content = document.createTextNode(content);
@@ -344,7 +345,7 @@ function showTooltip(e, content) {
 }
 
 var activeTooltip = null;
-var removeTT = function(cm) { removeTooltip(cm, activeTooltip); }
+const removeTT = function(cm) { removeTooltip(cm, activeTooltip); }
 
 function removeTooltip(editor, elt) {
     editor.off("scroll", removeTT);
@@ -366,7 +367,7 @@ const keyMap = {
         const currentWord = token.string;
 
         const key = "(" + line + "," + start + "," + currentWord.length + "," + currentWord + ")"; 
-        var ret = dictionary[key];       
+        const ret = dictionary[key];       
         activeTooltip = showTooltip(cm.cursorCoords(true), ret.ty);
         cm.on("scroll", removeTT);
         cm.on("mousedown", removeTT);
@@ -387,8 +388,8 @@ const keyMap = {
     },
     "Ctrl-D": editor => {
       editor.operation(() => {
-        var current_cursor = editor.doc.getCursor();
-        var line_content = editor.doc.getLine(current_cursor.line);
+        const current_cursor = editor.doc.getCursor();
+        const line_content = editor.doc.getLine(current_cursor.line);
         CodeMirror.commands.goLineEnd(editor);
         CodeMirror.commands.newlineAndIndent(editor);
         CodeMirror.commands.goLineLeft(editor);
@@ -399,45 +400,55 @@ const keyMap = {
     }    
 }
 
+var timerVar = null;
+function changeTicking(ev) {
+  console.log(ev.target.checked)
+  if (ev.target.checked){
+    if (timerVar == null) timerVar = window.setInterval((e) => compileToJs(), 30000)
+  } else {
+    if (timerVar != null) window.clearInterval(timerVar)
+  }
+}
 
-      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+
+      const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
         lineNumbers: true,
         matchBrackets: true,
         extraKeys: keyMap,
         theme: "ambiance"
       });
 
-      var editorTypes = CodeMirror.fromTextArea(document.getElementById("types"), {
+      const editorTypes = CodeMirror.fromTextArea(document.getElementById("types"), {
         lineNumbers: true,
         matchBrackets: true,
         theme: "ambiance"
       });
 
-      var preludeTypes = CodeMirror.fromTextArea(document.getElementById("preludeTypes"), {
+      const preludeTypes = CodeMirror.fromTextArea(document.getElementById("preludeTypes"), {
         lineNumbers: true,
         matchBrackets: true,
         theme: "ambiance"
       });
 
-      var editorCompiled = CodeMirror.fromTextArea(document.getElementById("compiled"), {
+      const editorCompiled = CodeMirror.fromTextArea(document.getElementById("compiled"), {
         lineNumbers: true,
         matchBrackets: true,
         theme: "ambiance"
       });
 
-      var editorOutput = CodeMirror.fromTextArea(document.getElementById("out"), {
+      const editorOutput = CodeMirror.fromTextArea(document.getElementById("out"), {
         lineNumbers: true,
         matchBrackets: true,
         theme: "ambiance"
       });
 
-      var editorCompiledJs = CodeMirror.fromTextArea(document.getElementById("compiledJs"), {
+      const editorCompiledJs = CodeMirror.fromTextArea(document.getElementById("compiledJs"), {
         lineNumbers: true,
         matchBrackets: true,
         theme: "ambiance"
       });
 
-      var editorOutputJs = CodeMirror.fromTextArea(document.getElementById("outputJs"), {
+      const editorOutputJs = CodeMirror.fromTextArea(document.getElementById("outputJs"), {
         lineNumbers: true,
         matchBrackets: true,
         theme: "ambiance"
@@ -447,14 +458,14 @@ const keyMap = {
 
       window.onload = function() {
 
-      var canvas = document.getElementById('canvas');
+      const canvas = document.getElementById('canvas');
       canvas.style.zIndex = "2";
       canvas.style.width  = '100%';
       canvas.style.height = '100%';
       clearPanels();
       activatePanel("Output")
      
-      var source = new rxjs.Subject();
+      const source = new rxjs.Subject();
       source.pipe(rxjs.debounceTime(500))
       .subscribe(_ => onChange())
       editor.on("change", function () {
@@ -463,8 +474,8 @@ const keyMap = {
     };
 
     function onChange() {
-      var ctx = canvas.getContext('2d');
-      var code = editor.getValue();
+      const ctx = canvas.getContext('2d');
+      const code = editor.getValue();
         editorOutputJs.setValue("");
         editorCompiledJs.setValue("");
         editorOutput.setValue("");
@@ -544,12 +555,12 @@ const keyMap = {
         return ('00' + n).slice(-z);
       }
 
-      var ms = s % 1000;
+      const ms = s % 1000;
       s = (s - ms) / 1000;   
-      var secs = s % 60;
+      const secs = s % 60;
       s = (s - secs) / 60;
-      var mins = s % 60;
-      var hrs = (s - mins) / 60;
+      const mins = s % 60;
+      const hrs = (s - mins) / 60;
 
       return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + pad(ms, 3);
       }
@@ -563,7 +574,7 @@ const keyMap = {
          // Handle response
          res.text().then(function (libCodeJson) { 
           try {
-            var script = "(function() {\n\n" + JSON.parse(libCodeJson) + 
+            const script = "(function() {\n\n" + JSON.parse(libCodeJson) + 
                                       "\n\n" + jsCode.replace("const main = ", "return ") + 
                                       "\n\n})();"
             const t0 = performance.now();
@@ -573,7 +584,7 @@ const keyMap = {
             const ret = eval(`const codeBase64 = "${scriptBase64}";\n\n` + script);
             if (ret instanceof Promise) {
               ret.then(x => {
-                var retStr = JSON.stringify(x);
+                const retStr = JSON.stringify(x);
                 const t1 = performance.now();
                 document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
                 editorOutputJs.setValue(`Promise resolved to:\r\n${retStr == undefined ? "()" : retStr}`);  
@@ -581,19 +592,19 @@ const keyMap = {
             } else if (ret != undefined && ret.constructor != undefined && ret.constructor.name == 'IO') {
               ret.run(0).then(([x, world]) => {
                 console.log(`World ${world}`)
-                var retStr = JSON.stringify(x);
+                const retStr = JSON.stringify(x);
                 const t1 = performance.now();
                 document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
                 editorOutputJs.setValue(`Promise resolved to:\r\n${retStr == undefined ? "()" : retStr}`);  
               })
             } else {
-              var retStr = JSON.stringify(ret);
+              const retStr = JSON.stringify(ret);
               const t1 = performance.now();
               document.getElementById("bench").innerText = "Running JS took " + msToTime(t1 - t0);
               editorOutputJs.setValue(retStr == undefined ? "()" : retStr);
             }
           } catch (e) {
-            var canvas = document.getElementById('canvas');
+            const canvas = document.getElementById('canvas');
             canvas.style.display = "none";
             editorOutputJs.setValue("" + e);
           }
@@ -602,18 +613,18 @@ const keyMap = {
     }
 
     function compileToJs() {
-        var code = editor.getValue();
+        const code = editor.getValue();
         fetch("compileToJs/", { method:'POST', body: code})
         .then(res => {
 	      // Handle response
-          var activeTabName = getActiveTabName();
+          const activeTabName = getActiveTabName();
           res.text().then(function (text) { 
             if (!text.includes("EOF")) {
                 try {
                    const json = JSON.parse(text);
                    if (json[0] != undefined) {
                      if (activeTabName == "Output") {
-                      var autoRun = document.getElementById("autoRunCheckBoxJavaScript");
+                      const autoRun = document.getElementById("autoRunCheckBoxJavaScript");
                       if (autoRun.checked) runJs(json[0]);
                      }
                      editorCompiledJs.setValue(
