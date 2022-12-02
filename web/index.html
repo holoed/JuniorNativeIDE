@@ -143,7 +143,7 @@
         <div class="w3-bar-item" style="flex-grow: 0; white-space: nowrap;">
             <input id="autoRunCheckBoxJavaScript" type="checkbox" checked> auto run js</input>
             &nbsp; &nbsp; 
-            <input id="tickCheckBoxJavaScript" type="checkbox" unchecked onchange="changeTicking(event)"> tick 30s</input>
+            <input id="tickCheckBoxJavaScript" type="checkbox" unchecked onchange="changeTicking(event)"> tick 60s</input>
         </div>
         <div style="text-align: right;">
             <button class="w3-bar-item w3-button tablink" onclick="openTab(event, 'Prelude')">Prelude</button>
@@ -404,7 +404,7 @@ var timerVar = null;
 function changeTicking(ev) {
   console.log(ev.target.checked)
   if (ev.target.checked){
-    if (timerVar == null) timerVar = window.setInterval((e) => compileToJs(), 30000)
+    if (timerVar == null) timerVar = window.setInterval((e) => compileToJs(), 60000)
   } else {
     if (timerVar != null) window.clearInterval(timerVar)
   }
