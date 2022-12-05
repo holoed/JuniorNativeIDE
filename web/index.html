@@ -107,6 +107,12 @@
 .dropdown a:hover {background-color: #ddd;}
 .dropdown-content a:hover {background-color: #ddd;}
 
+.fullbtn {
+  background-color: #31ac2c;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
 
 </style></head><body style="background-color: black;">
 
@@ -138,6 +144,7 @@
               <a onclick="openExample('bluetti.jnr')">Bluetti</a>
             </div>
         </div>
+        <div class="w3-bar-item"><button onclick="fullScreen()" class="fullbtn">Full Screen</button></div>
         <div class="w3-bar-item" style="flex-grow: 1;"></div>
         <div class="w3-bar-item"><p id="bench"></p></div>
         <div class="w3-bar-item" style="flex-grow: 0; white-space: nowrap;">
@@ -398,6 +405,16 @@ const keyMap = {
         editor.scrollIntoView();
       })
     }    
+}
+
+function fullScreen() {
+  const element = document.getElementById("separator");
+  const first = document.getElementById("first");
+  const second = document.getElementById("second");
+  element.style.left = 0 + "px";
+  first.style.width = 0 + "px";
+  second.style.width = document.body.clientWidth + "px";
+  compileToJs()
 }
 
 var timerVar = null;
