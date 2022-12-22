@@ -2,7 +2,7 @@ val zero :: Parser a
 let zero = mkParser (\inp -> [])
 
 val item :: Parser Char
-let item = mkParser (\inp -> if (nullStr inp) then []
+let item = mkParser (\inp -> if (inp == "") then []
                              else (headStr inp, tailStr inp) : [])
  
 val sat :: (Char -> Bool) -> Parser Char
@@ -34,7 +34,7 @@ let sepBy p sep =
 val string :: String -> Parser String  
 let string s =  
 	let string' cs =  
-      if nullStr cs then pure ""
+      if cs == "" then pure ""
       else pure (\x y -> charToStr x <> y) <*> char (headStr cs) <*> string' (tailStr cs)  
     in string' s 
 

@@ -1,6 +1,6 @@
 let zero = mkParser (\inp -> [])
 
-let item = mkParser (\inp -> if (nullStr inp) then []
+let item = mkParser (\inp -> if (inp == "") then []
                              else (headStr inp, tailStr inp) : [])
                              
 let sat p = item >>= (\x -> if p x then pure x else zero)
@@ -34,7 +34,7 @@ let token p = p     >>= (\x ->
 
 let string s = 
 	let string' cs = 
-      if nullStr cs then pure ""
+      if cs == "" then pure ""
       else let c   = headStr cs in
            let cs' = tailStr cs in 
            (char c) >>= (\x1 ->
