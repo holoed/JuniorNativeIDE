@@ -1,0 +1,19 @@
+-- TensorFlow XOR Example
+
+val brain :: FeedForwardModel
+let brain = feedForwardModel [2, 32, 1]
+
+val inputTensor :: Tensor2D
+let inputTensor = mkTensor2D [[0, 0], [0, 1], [1, 0], [1, 1]] 2
+
+val outputTensor :: Tensor2D
+let outputTensor = mkTensor2D [[0], [1], [1], [0]] 1
+
+val trainedBrain :: Async TrainedFeedForwardModel
+let trainedBrain = trainModel brain inputTensor outputTensor 500 True
+
+val run :: TrainedFeedForwardModel -> Tensor2D
+let run m = predict m inputTensor
+
+val main :: Async (List (List Int))
+let main = (((<$>)((<$>) round)) . tensor2DToArray . run) <$> trainedBrain        
