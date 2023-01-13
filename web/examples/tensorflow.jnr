@@ -1,19 +1,26 @@
 -- TensorFlow XOR Example
 
+-- creates the initial neural network structure with 2 input neurons, 32 hidden neurons, 8 hidden neurons and 1 output neuron
 val brain :: FeedForwardModel
 let brain = feedForwardModel [2, 32, 8, 1]  
 
+-- creates the input tensor with the XOR problem's input data
 val inputTensor :: Tensor2D
-let inputTensor = mkTensor2D [[0, 0], [0, 1], [1, 0], [1, 1]] 2 
+let inputTensor = mkTensor2D [[0, 0], [0, 1], [1, 0], [1, 1]] 2  
 
+-- creates the output tensor with the corresponding output for the XOR problem
 val outputTensor :: Tensor2D
-let outputTensor = mkTensor2D [[0], [1], [1], [0]] 1
+let outputTensor = mkTensor2D [[0], [1], [1], [0]] 1  
 
+-- trains the neural network with input and output tensors, 500 iterations and shuffling turned on
 val trainedBrain :: Async TrainedFeedForwardModel
-let trainedBrain = trainModel brain inputTensor outputTensor 500 True     
+let trainedBrain = trainModel brain inputTensor outputTensor 500 True  
 
+-- predicts the output of the trained neural network using inputTensor
 val run :: TrainedFeedForwardModel -> Tensor2D
-let run m = predict m inputTensor
+let run m = predict m inputTensor  
 
+-- using the trained neural network, predicts the output and rounds it to the nearest integer
 val main :: Async (List (List Int))
-let main = (((<$>)((<$>) round)) . tensor2DToArray . run) <$> trainedBrain             
+let main = (((<$>)((<$>) round)) . tensor2DToArray . run) <$> trainedBrain  
+ 
