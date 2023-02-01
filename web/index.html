@@ -386,6 +386,9 @@ const keyMap = {
     "Ctrl-.": function (cm) {
         if (currentTabName == "Output") compileToJs();
     },
+    "Shift-Ctrl-.": function (cm) {
+        if (currentTabName == "Output") compileToJs(true);
+    },
     "Ctrl-/": function(cm) {
       CodeMirror.commands.toggleComment(cm, { commentBlankLines:true, fillLines: true });
     },
@@ -408,6 +411,9 @@ const keyMap = {
         editor.doc.setCursor(current_cursor.line + 1, current_cursor.ch);
         editor.scrollIntoView();
       })
+    },
+    "Ctrl-M": editor => {
+        tfvis.visor().toggle();
     }    
 }
 
@@ -633,7 +639,7 @@ function changeTicking(ev) {
       });
     }
 
-    function compileToJs() {
+    function compileToJs(run) {
         const code = editor.getValue();
         fetch("compileToJs/", { method:'POST', body: code})
         .then(res => {
@@ -646,7 +652,7 @@ function changeTicking(ev) {
                    if (json[0] != undefined) {
                      if (activeTabName == "Output") {
                       const autoRun = document.getElementById("autoRunCheckBoxJavaScript");
-                      if (autoRun.checked) runJs(json[0]);
+                      if (autoRun.checked || run) runJs(json[0]);
                      }
                      editorCompiledJs.setValue(
                         window.js_beautify(json[0], window.js_beautify.defaultOptions())
