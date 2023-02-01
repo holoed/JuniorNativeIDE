@@ -59,7 +59,7 @@ let two' = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]] 
            
 val brain :: FeedForwardModel
-let brain = feedForwardModel [100, 16, 16, 32, 4]   
+let brain = feedForwardModel [100, 64, 32, 32, 4]   
 
 val inputTensor :: Tensor2D
 let inputTensor = mkTensor2D [flatten one, flatten two, flatten three, flatten four] 100
@@ -71,7 +71,7 @@ val outputTensor :: Tensor2D
 let outputTensor = mkTensor2D [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]] 4   
 
 val trainedBrain :: Async TrainedFeedForwardModel
-let trainedBrain = trainModel brain inputTensor outputTensor 5000 True  
+let trainedBrain = trainModel brain inputTensor outputTensor 2000 True  
 
 val main :: Async (List (List Int))
 let main = (((<$>)((<$>) round)) . tensor2DToArray . flip predict testTensor) <$> trainedBrain                  
