@@ -626,7 +626,7 @@ function changeTicking(ev) {
                 editorOutputJs.setValue(`Promise resolved to:\r\n${retStr == undefined ? "()" : retStr}`);  
               })
             } else {
-              const retStr = JSON.stringify(ret);
+              const retStr = typeof ret === 'string' ? ret : JSON.stringify(ret);
               const t1 = performance.now();
               document.getElementById("bench").innerText = "run-time " + msToTime(t1 - t0);
               editorOutputJs.setValue(retStr == undefined ? "()" : retStr);
