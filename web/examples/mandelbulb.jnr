@@ -1,0 +1,40 @@
+val pi :: Double
+let pi = 3.141592653589793
+
+val mandelbulb :: Int -> (Double, Double, Double) -> Double
+let mandelbulb maxIter (x, y, z) =
+  let power = 8.0 in
+  let iterate (zx, zy, zz, n) =
+    if n == maxIter then 0.0
+    else
+      let r = sqrt (zx * zx + zy * zy + zz * zz) in
+      let theta = acos (zz / r) in
+      let phi = atan2 (zy, zx) in
+      let rN = pow r power in
+      let thetaN = theta * power in
+      let phiN = phi * power in 
+      let xN = rN * sin thetaN * cos phiN + x in
+      let yN = rN * sin thetaN * sin phiN + y in 
+      let zN = rN * cos thetaN in
+      if r > 2.0 then n
+      else iterate (xN, yN, zN, n + 1.0) in
+  toDouble (iterate (x, y, z, 0))
+
+val generateMandelbulbPoints :: Int -> Int -> IO (List Double, List Double, List Double)
+let generateMandelbulbPoints numPoints maxIter =
+  let generatePoints idx xs ys zs =
+    if idx == numPoints then pure (xs, ys, zs)
+    else
+      randomIO >>= (\r -> let x' = 4 * r - 2.0 in
+      randomIO >>= (\r -> let y' = 4 * r - 2.0 in
+      randomIO >>= (\r -> let z' = 4 * r - 2.0 in
+      let i = mandelbulb maxIter (x', y', z') in
+      if i >= (toDouble maxIter) - 1.0 then
+        generatePoints idx xs ys zs
+      else
+        generatePoints (idx + 1) (x':xs) (y':ys) (z':zs)))) in
+  generatePoints 0 [] [] []
+
+val main :: IO (Async Unit)
+let main =
+  generateMandelbulbPoints 1000 8 >>= (\(xs, ys, zs) -> pure (renderPlot3D (xs, ys, zs)))

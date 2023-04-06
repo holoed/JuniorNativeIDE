@@ -1,0 +1,24 @@
+val pi :: Double
+let pi = 3.141592653589793
+
+val generateSpherePoints :: Double -> Int -> IO (List Double, List Double, List Double)
+let generateSpherePoints radius numPoints =
+  let generateSpherePoints' idx xs ys zs =
+    if idx == numPoints then pure (xs, ys, zs)
+    else
+      let u = randomIO in
+      let v = randomIO in
+      u >>= (\u' ->
+      v >>= (\v' ->
+      let theta = 2.0 * pi * u' in
+      let phi = acos (2.0 * v' - 1.0) in  
+      let x = radius * sin phi * cos theta in
+      let y = radius * sin phi * sin theta in
+      let z = radius * cos phi in
+      generateSpherePoints' (idx + 1) (x:xs) (y:ys) (z:zs))) in
+  generateSpherePoints' 0 [] [] []
+
+val main :: IO (Async Unit)
+let main =
+  generateSpherePoints 10.0 500 >>= (\(xs, ys, zs) -> pure (renderPlot3D (xs, ys, zs)))
+  
