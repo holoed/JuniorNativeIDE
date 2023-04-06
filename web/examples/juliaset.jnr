@@ -1,0 +1,34 @@
+val posToCoord :: (Int, Int) -> (Int, Int)
+let posToCoord (sz, x) =
+    let row = x / sz in
+    let col = x - sz * row in
+    (row, col)
+ 
+val add :: ((Double, Double),(Double, Double)) -> (Double, Double)
+let add ((x1, y1),(x2, y2)) = (x1 + x2, y1 + y2)
+
+val mul :: ((Double, Double),(Double, Double)) -> (Double, Double)
+let mul ((x1, y1),(x2, y2)) = ((x1 * x2 - y1 * y2), (x1 * y2 + y1 * x2))
+   
+val norm :: (Double, Double) -> Double
+let norm (re, im) = re * re + im * im
+ 
+val jPoint :: (Int, (Double, Double), (Double, Double)) -> Int
+let jPoint (i, c, z) =
+  if (i == 65 || norm z > 4.0) then i else jPoint (i + 1, c, add (mul (z, z), c))
+      
+val julia :: (Int, (Int, Int)) -> (Int, Int, Int)
+let julia (s, (x, y)) =
+  let x' = (4.0 * toDouble y / toDouble s) - 2.0 in
+  let y' = (4.0 * toDouble x / toDouble s) - 2.0 in
+  let i' = jPoint (0, (-0.8, 0.156), (x', y')) in
+  let f i = 128 + truncate (128.0 * (cos (toDouble i * 0.3))) in     
+  (f i', f (i' + 16), f (i' + 32))
+ 
+val render :: ((Int, (Int, Int)) -> (Int, Int, Int)) -> Int -> List (List (Int, Int, Int))
+let render effect pixSize =
+  let f x = effect (pixSize, (posToCoord (pixSize, x))) in
+  split pixSize (range f 0 (pixSize * pixSize))
+
+val main :: Async Unit
+let main = display (render julia 500)
