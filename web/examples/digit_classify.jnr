@@ -15,7 +15,7 @@ val mkTensor :: List (List (List (Int, Int, Int))) -> Tensor2D
 let mkTensor xsss = mkTensor2D ((\xss -> xss >>= (\xs -> xs >>= (\(x,y,z) -> [toDouble x, toDouble y, toDouble z]))) <$> xsss) 2268
 
 val brain :: FeedForwardModel
-let brain = feedForwardModel [2268, 64, 64, 64, 4]    
+let brain = feedForwardModel [2268, 256, 64, 64, 4]    
 
 val inputTensor :: Async Tensor2D
 let inputTensor = mkTensor <$> ((\ds -> flip toImg ds <$> [10, 14, 1, 32]) <$> dataSet)
