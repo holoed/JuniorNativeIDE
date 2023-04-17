@@ -1,77 +1,33 @@
-val one :: List (List Double)
-let one = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 1, 0, 0, 0, 0, 0], 
-           [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
-           [0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-           
-val two :: List (List Double)
-let two = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 1, 1, 0, 0, 0, 0, 0], 
-           [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
-           [0, 0, 0, 0, 1, 0, 0, 0, 0, 0], 
-           [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-           [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-           
-val three :: List (List Double)
-let three = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 1, 1, 0, 0, 0, 0, 0], 
-             [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
-             [0, 0, 0, 0, 1, 0, 0, 0, 0, 0], 
-             [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-             [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],    
-             [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-             
-val four :: List (List Double)
-let four = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 1, 0, 0, 0, 0, 0], 
-            [0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 1, 0, 0, 0, 0, 0],  
-            [0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]] 
-            
-val two' :: List (List Double)
-let two' = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-            [0, 0, 0, 1, 1, 1, 0, 0, 0, 0], 
-            [0, 0, 1, 0, 1, 1, 0, 0, 0, 0],  
-            [0, 0, 0, 0, 1, 1, 0, 0, 0, 0], 
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
-            [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]] 
-           
+
+val rawData :: Async String
+let rawData = httpGet "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz"
+
+val dataSet :: Async (List Int)
+let dataSet = (bufferToIntList . decompress) <$> rawData  
+
+val toImg :: Int -> List a -> List (List (a, a, a))
+let toImg n s = 
+  let sz = 28 in
+  let s' = (take (sz^2) . drop (16 + n*sz^2)) s in
+  tail <$> split sz ((\x -> (x, x, x)) <$> s')          
+          
+val mkTensor :: List (List (List (Int, Int, Int))) -> Tensor2D
+let mkTensor xsss = mkTensor2D ((\xss -> xss >>= (\xs -> xs >>= (\(x,y,z) -> [toDouble x, toDouble y, toDouble z]))) <$> xsss) 2268
+
 val brain :: FeedForwardModel
-let brain = feedForwardModel [100, 64, 64, 64, 4]    
+let brain = feedForwardModel [2268, 64, 64, 64, 4]    
 
-val inputTensor :: Tensor2D
-let inputTensor = mkTensor2D [flatten one, flatten two, flatten three, flatten four] 100
+val inputTensor :: Async Tensor2D
+let inputTensor = mkTensor <$> ((\ds -> flip toImg ds <$> [10, 14, 1, 32]) <$> dataSet)
 
-val testTensor :: Tensor2D
-let testTensor = mkTensor2D [flatten one, flatten two', flatten three, flatten four] 100
+val testTensor :: Async Tensor2D
+let testTensor = mkTensor <$> ((\ds -> flip toImg ds <$> [10, 14, 1, 18]) <$> dataSet)
 
 val outputTensor :: Tensor2D
 let outputTensor = mkTensor2D [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]] 4   
 
 val trainedBrain :: Async TrainedFeedForwardModel
-let trainedBrain = trainModel brain inputTensor outputTensor 2000 True  
+let trainedBrain = inputTensor >>= (\i -> trainModel brain i outputTensor 2000 True) 
 
 val main :: Async (List (List Int))
-let main =  (flip predict testTensor) <$> trainedBrain >>= tensor2DToArray >>= pure . ((<$>)((<$>) round))    
+let main = testTensor >>= (\tt -> (flip predict tt) <$> trainedBrain >>= tensor2DToArray >>= pure . ((<$>)((<$>) round)))
