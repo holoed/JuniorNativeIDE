@@ -19,8 +19,9 @@
 <script src="https://unpkg.com/rxjs@^7/dist/bundles/rxjs.umd.min.js"></script>
 <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.js"></script>
 <script src="https://cdn.jsdelivr.net/pako/1.0.3/pako.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.0.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.js"></script>
 <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
 <style>
 
@@ -488,7 +489,10 @@ function changeTicking(ev) {
 
       const markers = []; 
 
-      window.onload = function() {
+      window.onload = function() { 
+        const backend = Object.keys(tf.engine().registryFactory).reverse()[0]
+        console.log(backend)
+        tf.setBackend(backend).then(function() {
 
       const canvas = document.getElementById('canvas');
       canvas.style.zIndex = "2";
@@ -503,7 +507,8 @@ function changeTicking(ev) {
       editor.on("change", function () {
         source.next();
       });
-    };
+    });
+  }
 
     function onChange() {
       const ctx = canvas.getContext('2d');
