@@ -8,30 +8,40 @@ let labels = (bufferToIntList . decompress) <$> httpGet "http://yann.lecun.com/e
 val indexToVec :: Int -> List Double
 let indexToVec n = range (\x -> if x == n then 1.0 else 0.0) 0 9
 
+val vecToIndex :: List Int -> Int
+let vecToIndex xs = 
+  let vecToIndex' n xs =
+    if (xs == []) then 0
+    else if ((head xs) == 1) then n 
+    else vecToIndex' (n + 1) (tail xs) in
+  vecToIndex' 0 xs
+
 val toImg :: Int -> List a -> List (List a)
 let toImg n s = 
   let sz = 28 in
   let s' = (take (sz^2) . drop (16 + n*sz^2)) s in
   split sz s'         
           
-val mkTensor :: List (List (List Int)) -> Tensor2D
+val mkTensor :: List (List (List Int)) -> Tensor2D 
 let mkTensor xsss = mkTensor2D ((\xss -> xss >>= (\xs -> xs >>= (\x -> [toDouble x]))) <$> xsss) (28*28)
 
 val brain :: FeedForwardModel
-let brain = feedForwardModel [(28*28), 512, 256, 10]    
+let brain = feedForwardModel [(28*28), 512, 256, 128, 10]  
 
+let digitCount = 500  
+ 
 val inputTensor :: Async Tensor2D
-let inputTensor = mkTensor <$> ((\ds -> range (flip toImg ds) 0 4) <$> dataSet) 
+let inputTensor = mkTensor <$> ((\ds -> range (flip toImg ds) 10 (10 + digitCount - 1)) <$> dataSet) 
  
 val testTensor :: Async Tensor2D
-let testTensor = mkTensor <$> ((\ds -> range (flip toImg ds) 0 4) <$> dataSet)
+let testTensor = mkTensor <$> ((\ds -> range (flip toImg ds) 0 9) <$> dataSet)
 
 val outputTensor :: Async Tensor2D
-let outputTensor = flip mkTensor2D 10 <$> (((\xs -> indexToVec <$> xs) . take 5 . drop 8) <$> labels) 
+let outputTensor = flip mkTensor2D 10 <$> (((\xs -> indexToVec <$> xs) . take digitCount . drop 10 . drop 8) <$> labels) 
 
 val trainedBrain :: Async TrainedFeedForwardModel
 let trainedBrain = inputTensor >>= (\i -> 
-                   outputTensor >>= (\o -> trainModel brain i o 1000 True)) 
+                   outputTensor >>= (\o -> trainModel brain i o 100 True)) 
 
-val main :: Async (List (List Int))
-let main = testTensor >>= (\tt -> (flip predict tt) <$> trainedBrain >>= tensor2DToArray >>= pure . ((<$>)((<$>) round)))
+val main :: Async (List Int)
+let main = testTensor >>= (\tt -> (flip predict tt) <$> trainedBrain >>= tensor2DToArray >>= pure . ((<$>) (vecToIndex . ((<$>) round))))
