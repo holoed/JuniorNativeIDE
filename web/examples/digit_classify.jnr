@@ -16,7 +16,7 @@ let vecToIndex xs =
     else vecToIndex' (n + 1) (tail xs) in
   vecToIndex' 0 xs
 
-val toImg :: Int -> List a -> List (List a)
+val toImg :: Int -> List a -> List (List a) 
 let toImg n s = 
   let sz = 28 in
   let s' = (take (sz^2) . drop (16 + n*sz^2)) s in
@@ -26,9 +26,9 @@ val mkTensor :: List (List (List Int)) -> Tensor2D
 let mkTensor xsss = mkTensor2D ((\xss -> xss >>= (\xs -> xs >>= (\x -> [toDouble x]))) <$> xsss) (28*28)
 
 val brain :: FeedForwardModel
-let brain = feedForwardModel [(28*28), 512, 256, 128, 10]  
+let brain = feedForwardModel [(28*28), 100, 100, 10]  
 
-let digitCount = 500  
+let digitCount = 8000  
  
 val inputTensor :: Async Tensor2D
 let inputTensor = mkTensor <$> ((\ds -> range (flip toImg ds) 10 (10 + digitCount - 1)) <$> dataSet) 
