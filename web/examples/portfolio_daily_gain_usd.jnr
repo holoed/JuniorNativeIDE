@@ -1,0 +1,45 @@
+val jsonData :: String -> Async String
+let jsonData symbol = httpGet ("https://query1.finance.yahoo.com/v8/finance/chart/" <> symbol)
+
+val getData :: String -> Maybe Json
+let getData = parseJson >=> getJsonValue "chart" >=> getJsonList "result" >=> listToMaybe
+   
+val getSymbol :: Json -> Maybe String 
+let getSymbol = (foldKliesli . (fmap getJsonValue)) ["meta", "symbol"] >=> jsonToString   
+
+val getPreviousClose :: Json -> Maybe Double
+let getPreviousClose = (foldKliesli . (fmap getJsonValue)) ["meta", "previousClose"] >=> jsonToDouble  
+  
+val getClose :: Json -> Maybe (List Double)      
+let getClose = getJsonValue "indicators" >=> 
+               getJsonList "quote" >=>   
+               listToMaybe >=> 
+               getJsonList "close" >=> 
+               traverse jsonToDouble                    
+     
+val getTimestamps :: Json -> Maybe (List String)      
+let getTimestamps = getJsonList "timestamp" >=>  
+  (fmap (fmap timeStampToDate) . (traverse jsonToInt))
+
+val normalize :: Double -> Int -> List Double -> List Double
+let normalize c n xs = fmap (\x -> if (x == 0) then x else (100 * (x - c) * (toDouble n / 587))) xs
+
+val spotData :: Int -> String -> Maybe ((String, List String, List Double)) 
+let spotData n = getData >=> (\z ->    
+                 pure (\x y c z -> (x, y, normalize c n z))
+                      <*> (getSymbol z)  
+                      <*> (getTimestamps z)    
+                      <*> (getPreviousClose z) 
+                      <*> (getClose z))  
+
+val ticker :: Int -> String -> Async (List ((String, List String, List Double)))
+let ticker shares = jsonData >=> (pure . maybeToList . spotData shares)
+
+val tickers :: List (String, Int) 
+let tickers = [("H", 16), ("RKLB", 304), ("AMAT", 18), ("MPWR", 3), ("AI", 12),
+               ("AAPL", 4), ("TSLA", 3), ("AMD", 59), ("MAR", 4), 
+               ("NVDA", 22), ("GOOGL", 20), ("AVGO", 4), ("LMT", 1), ("QCOM", 5), 
+               ("META", 4), ("U", 13), ("ETSY", 9), ("HAL", 51), ("APA", 30), ("GD", 1), ("MU", 4)]
+
+val main :: Async Unit
+let main = (fmap flatten (traverse (\(t, n) -> ticker n t) tickers)) >>= renderTimeSeries
