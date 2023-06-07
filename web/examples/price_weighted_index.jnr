@@ -22,7 +22,7 @@ let getTimestamps = getJsonList "timestamp" >=>
   (fmap (fmap timeStampToDate) . (traverse jsonToInt))
 
 val normalize :: Double -> Int -> List Double -> List Double
-let normalize c n xs = fmap (\x -> if (x == 0) then 0 else ((x - c) / c) * 100) xs
+let normalize c n xs = fmap (\x -> if (x == 0) then 0 else ((x - c) * toDouble n)) xs
 
 val spotData :: Int -> String -> Maybe ((String, List String, List Double)) 
 let spotData n = getData >=> (\z ->    
@@ -43,7 +43,7 @@ let tickers = [("H", 16), ("RKLB", 329), ("AMAT", 18), ("MPWR", 3), ("AI", 22), 
 
 val avg :: List ((String, List String, List Double)) -> List ((String, List String, List Double))
 let avg xs =
- [foldr1 (\(n, xs, ys) (n', xs', ys') -> ("Day Gain", xs, zipWith (\x y -> (x + y) / 2) ys ys')) xs]
+ [foldr1 (\(n, xs, ys) (n', xs', ys') -> ("Day Gain", xs, zipWith (+) ys ys')) xs]
 
 
 let main = (fmap (avg . flatten) (traverse (\(t, n) -> ticker n t) tickers)) >>= renderTimeSeries 
