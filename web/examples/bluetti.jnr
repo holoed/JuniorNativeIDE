@@ -17,6 +17,7 @@ let getData d (s, i) = (maybeToList . (\xs -> (pure (\x y -> (s, timeStampToDate
 
 val topics :: List (String, Double)
 let topics = [
+               ("ac_input_power", 1000),   
                ("dc_input_power", 400), 
                ("total_battery_percent", 100)
              ]
@@ -26,4 +27,4 @@ let main = currentDate >>= (\d -> flatten <$> asyncToIO (sequenceA (getData d <$
                        >>= asyncToIO . renderTimeSeries
  
       
-                                         
+                                            
