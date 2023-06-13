@@ -1,22 +1,46 @@
 let columnDefs = listToJson . (fmap (\x -> mapToJson (fromListToMap [("field", stringToJson x)])))  
 
+val getData :: String -> Maybe Json
 let getData = parseJson >=> 
-              getJsonValue "quoteResponse" >=> 
-              getJsonList "result"  
+              getJsonValue "quoteSummary" >=> 
+              getJsonList "result" >=>
+              listToMaybe
 
+val getShortName :: Json -> Maybe Json 
+let getShortName = (foldKliesli . (fmap getJsonValue)) ["price", "shortName"] 
+
+val getPrice :: Json -> Maybe Json 
+let getPrice = (foldKliesli . (fmap getJsonValue)) ["price", "regularMarketPrice", "raw"] 
+
+val getSector :: Json -> Maybe Json 
+let getSector = (foldKliesli . (fmap getJsonValue)) ["assetProfile", "sector"]  
+
+val spotData :: String -> Maybe Json 
+let spotData = getData >=> (\z ->    
+                 pure (\x y z -> ((mapToJson . fromListToMap) [("shortName", x), ("sector", y), ("price", z)])) 
+                      <*> (getShortName z)
+                      <*> (getSector z)
+                      <*> (getPrice z))
+ 
 val jsonData :: String -> Async String
 let jsonData symbol = 
-  httpGet ("https://query1.finance.yahoo.com/v7/finance/quote?symbols=" <> symbol)
+  httpGet ("https://query1.finance.yahoo.com/v10/finance/quoteSummary/" <> symbol <> "?modules=assetProfile,price")
 
+val toData :: List Json -> Json
 let toData x = 
   (mapToJson . fromListToMap) 
-  [("columnDefs", columnDefs ["longName", "bid", "ask", "fiftyTwoWeekHigh", "fiftyTwoWeekLow"]),
+  [("columnDefs", columnDefs ["shortName", "sector", "price"]),
    ("rowData", listToJson x),
    ("defaultColDef", (mapToJson . fromListToMap) [
    ("sortable", stringToJson "true"),
    ("resizable", stringToJson "true")])]
 
-let tickers = "H,RKLB,AMAT,MPWR,AAPL,TSLA,AMD,MAR,NVDA,GOOGL,AVGO,LMT,QCOM,META,U,ETSY,TWTR,ARN.MI,G.MI"
+val tickers :: List String 
+let tickers = ["^IXIC", "H", "RKLB", "AMAT", "MPWR", "AI",
+               "AAPL", "TSLA", "AMD", "MAR", 
+               "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
+               "META", "U", "ETSY", "TWTR", "HAL", "APA", "GD", "MU"]
 
-
-let main = ((jsonData >=> (pure . fmap toData . getData)) tickers) >>= traverse renderDataGrid
+val main :: Async Unit
+let main = toData <$> (flatten <$> (fmap maybeToList <$> (sequenceA ((jsonData >=> (pure . spotData)) <$> tickers)))) 
+           >>= renderDataGrid
