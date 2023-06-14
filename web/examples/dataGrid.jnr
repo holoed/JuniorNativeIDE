@@ -16,6 +16,9 @@ let getShortName = createJsonGetter ["price", "shortName"]
 val getPrice :: Json -> Maybe Json 
 let getPrice = createJsonGetter ["price", "regularMarketPrice", "raw"]
 
+val getPreviousClose :: Json -> Maybe Json 
+let getPreviousClose = createJsonGetter ["summaryDetail", "previousClose", "raw"]
+
 val getSector :: Json -> Maybe Json 
 let getSector = createJsonGetter ["assetProfile", "sector"]
 
@@ -24,19 +27,20 @@ let toJsonMap = mapToJson . fromListToMap
 
 val spotData :: String -> Maybe Json 
 let spotData = getData >=> (\z ->    
-                 pure (\x y z -> toJsonMap [("shortName", x), ("sector", y), ("price", z)]) 
+                 pure (\x y z w -> toJsonMap [("shortName", x), ("sector", y), ("price", z), ("previousClose", w)]) 
                       <*> (getShortName z)
                       <*> (getSector z)
-                      <*> (getPrice z))
+                      <*> (getPrice z)
+                      <*> (getPreviousClose z))
  
 val jsonData :: String -> Async String
 let jsonData symbol = 
-  httpGet ("https://query1.finance.yahoo.com/v10/finance/quoteSummary/" <> symbol <> "?modules=assetProfile,price")
+  httpGet ("https://query1.finance.yahoo.com/v10/finance/quoteSummary/" <> symbol <> "?modules=assetProfile,price,summaryDetail")
 
 val toData :: List Json -> Json
 let toData x = 
   toJsonMap [
-    ("columnDefs", columnDefs ["shortName", "sector", "price"]),
+    ("columnDefs", columnDefs ["shortName", "sector", "price", "previousClose"]), 
     ("rowData", listToJson x),
     ("defaultColDef", toJsonMap [
       ("sortable", stringToJson "true"),
@@ -45,7 +49,7 @@ let toData x =
   ]
 
 val tickers :: List String 
-let tickers = ["^IXIC", "H", "RKLB", "AMAT", "MPWR", "AI",
+let tickers = ["H", "RKLB", "AMAT", "MPWR", "AI",
                "AAPL", "TSLA", "AMD", "MAR", 
                "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
                "META", "U", "ETSY", "TWTR", "HAL", "APA", "GD", "MU"]
