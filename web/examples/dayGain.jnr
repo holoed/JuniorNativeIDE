@@ -48,10 +48,16 @@ let tickers = [("H", 16), ("RKLB", 329), ("AMAT", 18), ("MPWR", 3), ("AI", 22), 
                ("NVDA", 22), ("GOOGL", 20), ("AVGO", 4), ("LMT", 1), ("QCOM", 5), ("O", 37), ("ISLN.L", 10),
                ("META", 4), ("U", 13), ("ETSY", 9), ("HAL", 51), ("APA", 30), ("GD", 1), ("MU", 4)]
 
-let main = unzip <$>
+let filter p = foldr (\x xs -> if (p x) then x : xs else xs) []
+
+val zeroNegatives :: List (String, Double) -> List (String, Double)
+let zeroNegatives = fmap (\(x, y) -> (x, if (y < 0) then 0 - y else y)) . filter (\(x, y) -> y > 0)  
+
+let main = unzip <$> 
+           (zeroNegatives <$>
            (((<$>) (foldr1 (\(x1, y1) (x2, y2) -> (x1, (y1 + y2))))) <$>
            ((groupBy (\(x1, y1) (x2, y2) -> x1 == x2)) <$> 
            (((sortBy (\(x1, y1) (x2, y2) -> x1 > x2)) <$> 
-           (flatten <$> (fmap maybeToList <$> (sequenceA ((\(x, i) -> (jsonData >=> (pure . spotData i)) x) <$> tickers))))))))
+           (flatten <$> (fmap maybeToList <$> (sequenceA ((\(x, i) -> (jsonData >=> (pure . spotData i)) x) <$> tickers)))))))))
            >>= (\(xs, ys) -> renderPieChart [("Day Gain", xs, ys)])
     
