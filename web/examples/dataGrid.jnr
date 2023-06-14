@@ -11,7 +11,7 @@ val createJsonGetter :: List String -> Json -> Maybe Json
 let createJsonGetter = foldKliesli . (fmap getJsonValue)
 
 val getShortName :: Json -> Maybe Json 
-let getShortName = createJsonGetter ["price", "symbol"]
+let getShortName = createJsonGetter ["price", "shortName"]
 
 val getPrice :: Json -> Maybe Json 
 let getPrice = createJsonGetter ["price", "regularMarketPrice", "raw"]
@@ -25,9 +25,16 @@ let getSector = createJsonGetter ["assetProfile", "sector"]
 val toJsonMap :: List (a, b) -> Json
 let toJsonMap = mapToJson . fromListToMap
 
+let dayGain currentPrice prevClose numShares = numShares * (currentPrice - prevClose)
+
 val spotData :: Int -> String -> Maybe Json 
 let spotData i = getData >=> (\z ->    
-                 pure (\x y z w -> toJsonMap [("shortName", x), ("sector", y), ("price", z), ("previousClose", w), ("quantity", intToJson i)]) 
+                 pure (\name sector price prevClose -> toJsonMap [("shortName", name), 
+                                                      ("sector", sector), 
+                                                      ("dayGain", fromJust (parseJson (show (dayGain (fromJust (jsonToDouble price)) 
+                                                                          (fromJust (jsonToDouble prevClose)) (fromInteger i))))),
+                                                      ("price", price), 
+                                                      ("previousClose", prevClose)]) 
                       <*> (getShortName z)
                       <*> (getSector z)
                       <*> (getPrice z)
@@ -40,7 +47,7 @@ let jsonData symbol =
 val toData :: List Json -> Json
 let toData x = 
   toJsonMap [
-    ("columnDefs", columnDefs ["shortName", "sector", "price", "previousClose", "quantity"]), 
+    ("columnDefs", columnDefs ["shortName", "sector", "dayGain"]),  
     ("rowData", listToJson x),
     ("defaultColDef", toJsonMap [
       ("sortable", stringToJson "true"),
