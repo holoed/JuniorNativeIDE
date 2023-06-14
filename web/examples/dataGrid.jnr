@@ -11,7 +11,7 @@ val createJsonGetter :: List String -> Json -> Maybe Json
 let createJsonGetter = foldKliesli . (fmap getJsonValue)
 
 val getShortName :: Json -> Maybe Json 
-let getShortName = createJsonGetter ["price", "shortName"]
+let getShortName = createJsonGetter ["price", "symbol"]
 
 val getPrice :: Json -> Maybe Json 
 let getPrice = createJsonGetter ["price", "regularMarketPrice", "raw"]
@@ -25,9 +25,9 @@ let getSector = createJsonGetter ["assetProfile", "sector"]
 val toJsonMap :: List (a, b) -> Json
 let toJsonMap = mapToJson . fromListToMap
 
-val spotData :: String -> Maybe Json 
-let spotData = getData >=> (\z ->    
-                 pure (\x y z w -> toJsonMap [("shortName", x), ("sector", y), ("price", z), ("previousClose", w)]) 
+val spotData :: Int -> String -> Maybe Json 
+let spotData i = getData >=> (\z ->    
+                 pure (\x y z w -> toJsonMap [("shortName", x), ("sector", y), ("price", z), ("previousClose", w), ("quantity", intToJson i)]) 
                       <*> (getShortName z)
                       <*> (getSector z)
                       <*> (getPrice z)
@@ -40,7 +40,7 @@ let jsonData symbol =
 val toData :: List Json -> Json
 let toData x = 
   toJsonMap [
-    ("columnDefs", columnDefs ["shortName", "sector", "price", "previousClose"]), 
+    ("columnDefs", columnDefs ["shortName", "sector", "price", "previousClose", "quantity"]), 
     ("rowData", listToJson x),
     ("defaultColDef", toJsonMap [
       ("sortable", stringToJson "true"),
@@ -48,12 +48,12 @@ let toData x =
     ])
   ]
 
-val tickers :: List String 
-let tickers = ["H", "RKLB", "AMAT", "MPWR", "AI",
-               "AAPL", "TSLA", "AMD", "MAR", 
-               "NVDA", "GOOGL", "AVGO", "LMT", "QCOM", 
-               "META", "U", "ETSY", "TWTR", "HAL", "APA", "GD", "MU"]
+val tickers :: List (String, Int) 
+let tickers = [("H", 16), ("RKLB", 329), ("AMAT", 18), ("MPWR", 3), ("AI", 22), ("ERG.MI", 11),
+               ("AAPL", 4), ("TSLA", 3), ("AMD", 59), ("MAR", 4), ("G.MI", 93), ("ARN.MI", 49),
+               ("NVDA", 22), ("GOOGL", 20), ("AVGO", 4), ("LMT", 1), ("QCOM", 5), ("O", 37), ("ISLN.L", 10),
+               ("META", 4), ("U", 13), ("ETSY", 9), ("HAL", 51), ("APA", 30), ("GD", 1), ("MU", 4)]
 
 val main :: Async Unit
-let main = toData <$> (flatten <$> (fmap maybeToList <$> (sequenceA ((jsonData >=> (pure . spotData)) <$> tickers)))) 
+let main = toData <$> (flatten <$> (fmap maybeToList <$> (sequenceA ((\(x, i) -> (jsonData >=> (pure . spotData i)) x) <$> tickers)))) 
            >>= renderDataGrid
