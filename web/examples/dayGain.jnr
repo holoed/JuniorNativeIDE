@@ -1,0 +1,57 @@
+val columnDefs :: List String -> Json
+let columnDefs = listToJson . (fmap (\x -> mapToJson (fromListToMap [("field", stringToJson x)])))  
+
+val getData :: String -> Maybe Json
+let getData = parseJson >=> 
+              getJsonValue "quoteSummary" >=> 
+              getJsonList "result" >=>
+              listToMaybe
+
+val createJsonGetter :: List String -> Json -> Maybe Json
+let createJsonGetter = foldKliesli . (fmap getJsonValue)
+
+val getShortName :: Json -> Maybe Json 
+let getShortName = createJsonGetter ["price", "shortName"]
+
+val getPrice :: Json -> Maybe Json 
+let getPrice = createJsonGetter ["price", "regularMarketPrice", "raw"]
+
+val getPreviousClose :: Json -> Maybe Json 
+let getPreviousClose = createJsonGetter ["summaryDetail", "previousClose", "raw"]
+
+val getSector :: Json -> Maybe Json 
+let getSector = createJsonGetter ["assetProfile", "sector"]
+
+val toJsonMap :: List (a, b) -> Json
+let toJsonMap = mapToJson . fromListToMap
+
+let dayGain currentPrice prevClose numShares = numShares * (currentPrice - prevClose)
+
+val spotData :: Int -> String -> Maybe (String, Double)
+let spotData i = getData >=> (\z ->    
+                 pure (\name sector price prevClose -> (fromJust (jsonToString sector), 
+                                                        dayGain (fromJust (jsonToDouble price)) 
+                                                                (fromJust (jsonToDouble prevClose)) (fromInteger i)))
+                      <*> (getShortName z)
+                      <*> (getSector z)
+                      <*> (getPrice z)
+                      <*> (getPreviousClose z))
+ 
+val jsonData :: String -> Async String 
+let jsonData symbol = 
+  httpGet ("https://query1.finance.yahoo.com/v10/finance/quoteSummary/" <> symbol <> "?modules=assetProfile,price,summaryDetail")
+
+
+val tickers :: List (String, Int) 
+let tickers = [("H", 16), ("RKLB", 329), ("AMAT", 18), ("MPWR", 3), ("AI", 22), ("ERG.MI", 11),
+               ("AAPL", 4), ("TSLA", 3), ("AMD", 59), ("MAR", 4), ("G.MI", 93), ("ARN.MI", 49),
+               ("NVDA", 22), ("GOOGL", 20), ("AVGO", 4), ("LMT", 1), ("QCOM", 5), ("O", 37), ("ISLN.L", 10),
+               ("META", 4), ("U", 13), ("ETSY", 9), ("HAL", 51), ("APA", 30), ("GD", 1), ("MU", 4)]
+
+let main = unzip <$>
+           (((<$>) (foldr1 (\(x1, y1) (x2, y2) -> (x1, (y1 + y2))))) <$>
+           ((groupBy (\(x1, y1) (x2, y2) -> x1 == x2)) <$> 
+           (((sortBy (\(x1, y1) (x2, y2) -> x1 > x2)) <$> 
+           (flatten <$> (fmap maybeToList <$> (sequenceA ((\(x, i) -> (jsonData >=> (pure . spotData i)) x) <$> tickers))))))))
+           >>= (\(xs, ys) -> renderPieChart [("Day Gain", xs, ys)])
+    
