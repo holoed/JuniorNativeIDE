@@ -57,9 +57,9 @@ let toData x =
 
 val tickers :: List (String, Int) 
 let tickers = [("H", 16), ("RKLB", 329), ("AMAT", 18), ("MPWR", 3), ("AI", 22), ("ERG.MI", 11),
-               ("AAPL", 4), ("TSLA", 3), ("AMD", 59), ("MAR", 4), ("G.MI", 93), ("ARN.MI", 49),
-               ("NVDA", 22), ("GOOGL", 20), ("AVGO", 4), ("LMT", 1), ("QCOM", 5), ("O", 37), ("ISLN.L", 10),
-               ("META", 4), ("U", 13), ("ETSY", 9), ("HAL", 51), ("APA", 30), ("GD", 1), ("MU", 4)]
+               ("AAPL", 4), ("TSLA", 3), ("AMD", 59), ("MAR", 4), ("G.MI", 100), ("ARN.MI", 49),
+               ("NVDA", 22), ("GOOGL", 20), ("AVGO", 4), ("LMT", 1), ("QCOM", 5), ("O", 45), ("ISLN.L", 10),
+               ("META", 4), ("U", 20), ("ETSY", 10), ("HAL", 51), ("APA", 30), ("GD", 1), ("MU", 4), ("JNJ", 3)]
 
 val main :: Async Unit
 let main = toData <$> (flatten <$> (fmap maybeToList <$> (sequenceA ((\(x, i) -> (jsonData >=> (pure . spotData i)) x) <$> tickers)))) 
