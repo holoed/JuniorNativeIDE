@@ -36,7 +36,7 @@ val ticker :: Int -> String -> Async (List ((String, List String, List Double)))
 let ticker shares = jsonData >=> (pure . maybeToList . spotData shares)
 
 val tickers :: List (String, Int) 
-let tickers = [("H", 16), ("RKLB", 329), ("AMAT", 18), ("MPWR", 3), ("AI", 22),
+let tickers = [("H", 16), ("RKLB", 344), ("AMAT", 18), ("MPWR", 3), ("AI", 22),
                ("AAPL", 4), ("TSLA", 3), ("AMD", 59), ("MAR", 4), 
                ("NVDA", 22), ("GOOGL", 20), ("AVGO", 4), ("LMT", 1), ("QCOM", 5), ("O", 45),
                ("META", 4), ("U", 20), ("ETSY", 10), ("HAL", 51), ("APA", 30), ("GD", 1), ("MU", 4), ("JNJ", 7)]
