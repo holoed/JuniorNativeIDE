@@ -2,7 +2,7 @@
 
 -- creates the initial neural network structure with 2 input neurons, 32 hidden neurons, 8 hidden neurons and 1 output neuron
 val brain :: FeedForwardModel
-let brain = feedForwardModel [2, 128, 128, 1]  
+let brain = feedForwardModel [2, 128, 1]  
 
 -- creates the input tensor with the XOR problem's input data
 val inputTensor :: Tensor2D
@@ -14,7 +14,7 @@ let outputTensor = mkTensor2D [[0], [1], [1], [0]] 1
 
 -- trains the neural network with input and output tensors, 500 iterations and shuffling turned on
 val trainedBrain :: Async TrainedFeedForwardModel
-let trainedBrain = trainModel brain inputTensor outputTensor 5000 True  
+let trainedBrain = trainModel brain inputTensor outputTensor 500 True  
 
 -- predicts the output of the trained neural network using inputTensor
 val run :: TrainedFeedForwardModel -> Tensor2D
@@ -24,4 +24,4 @@ let run m = predict m inputTensor
 val main :: Async (List (List Int))
 let main = run <$> trainedBrain >>= tensor2DToArray >>= pure . ((<$>)((<$>) round))
 
- 
+    
