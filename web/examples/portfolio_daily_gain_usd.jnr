@@ -22,7 +22,7 @@ let getTimestamps = getJsonList "timestamp" >=>
   (fmap (fmap timeStampToDate) . (traverse jsonToInt))
 
 val normalize :: Double -> Int -> List Double -> List Double
-let normalize c n xs = fmap (\x -> if (x == 0) then x else (100 * (x - c) * (toDouble n / 587))) xs
+let normalize c n xs = fmap (\x -> if (x == 0) then x else (x - c) * (toDouble n)) xs
 
 val spotData :: Int -> String -> Maybe ((String, List String, List Double)) 
 let spotData n = getData >=> (\z ->    
@@ -35,12 +35,17 @@ let spotData n = getData >=> (\z ->
 val ticker :: Int -> String -> Async (List ((String, List String, List Double)))
 let ticker shares = jsonData >=> (pure . maybeToList . spotData shares)
 
-val extract :: Json -> (String, Int)
+val extract :: Json -> (String, Int, String)
 let extract x = (fromJust ((getJsonValue "symbol" >=> jsonToString) x), 
-                 fromJust ((getJsonValue "quantity" >=> jsonToInt) x))
+                 fromJust ((getJsonValue "quantity" >=> jsonToInt) x),
+                 fromJust ((getJsonValue "currency" >=> jsonToString) x))
 
 let tickers = (((<$>) extract) . flatten . maybeToList . (parseJson >=> getJsonList "stocks")) <$> 
               httpGet "https://holoed.github.io/stocks.json"
 
+let filter p = foldr (\x xs -> if (p x) then x : xs else xs) []
+
+let pred (x, y, z) = z == "USD" 
+
 val main :: Async Unit
-let main = tickers >>= (\ts -> (fmap flatten (traverse (\(t, n) -> ticker n t) ts))) >>= renderTimeSeries
+let main = tickers >>= (\ts -> (fmap flatten (traverse (\(t, n, c) -> ticker n t) (filter pred ts)))) >>= renderTimeSeries

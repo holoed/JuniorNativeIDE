@@ -35,11 +35,22 @@ let spotData = getData >=> (\z ->
 val ticker :: String -> Async (List ((String, List String, List Double)))
 let ticker = jsonData >=> (pure . maybeToList . spotData)
  
-val tickers :: List String 
-let tickers = ["ISLN.L", "ERG.MI", "ARN.MI", "G.MI"]
+val extract :: Json -> (String, Int, String)
+let extract x = (fromJust ((getJsonValue "symbol" >=> jsonToString) x), 
+                 fromJust ((getJsonValue "quantity" >=> jsonToInt) x),
+                 fromJust ((getJsonValue "currency" >=> jsonToString) x))
+
+let tickers = (((<$>) extract) . flatten . maybeToList . (parseJson >=> getJsonList "stocks")) <$> 
+              httpGet "https://holoed.github.io/stocks.json"
+ 
+let filter p = foldr (\x xs -> if (p x) then x : xs else xs) []
+
+let pred (x, y, z) = z == "EUR" 
  
 val main :: Async Unit
-let main = (fmap flatten (traverse ticker tickers)) >>= renderTimeSeries 
+let main = tickers >>= 
+           (\ts -> (fmap flatten (traverse ticker (((fmap (\(x,y,z) -> x) . (filter pred)) ts))))) 
+           >>= renderTimeSeries 
   
       
                
