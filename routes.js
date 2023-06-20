@@ -2,7 +2,9 @@ import express from 'express';
 import request from 'request';
 import bodyParser from 'body-parser';
 import fetch from 'node-fetch';
+import NodeCache from 'node-cache';
 
+const cache = new NodeCache();
 const router = express.Router();
 const textParser = bodyParser.text();
 const jsonParser = bodyParser.json({ limit: '500mb'});
@@ -126,9 +128,17 @@ router.post('/fetch', jsonParser, async function(req, res) {
             const body = await response.arrayBuffer();
             res.send(base64ArrayBuffer(body)).end();
         } else {
-            const response = await fetch(reqUrl);
-            const body = await response.text()
-            res.send(body).end();
+            const cachedBody = cache.get(reqUrl);
+            if (cachedBody) {
+                console.log(`Got from the cache ${reqUrl}`);
+                res.send(cachedBody).end();
+            }
+            else {
+                const response = await fetch(reqUrl);
+                const body = await response.text()
+                cache.set(reqUrl, body, 60);
+                res.send(body).end();
+            }
         } 
     } catch (e) {
         res.sendStatus(500).end();
