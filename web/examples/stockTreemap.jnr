@@ -48,8 +48,6 @@ let extract x = (fromJust ((getJsonValue "symbol" >=> jsonToString) x),
 let tickers = (((<$>) extract) . flatten . maybeToList . (parseJson >=> getJsonList "stocks")) <$> 
               httpGet "https://holoed.github.io/stocks.json"
 
-let filter p = foldr (\x xs -> if (p x) then x : xs else xs) []
-
 val zeroNegatives :: List (String, Double) -> List (String, Double)
 let zeroNegatives = fmap (\(x, y) -> (x, if (y < 0) then 0 - y else y)) . filter (\(x, y) -> y > 0)  
 

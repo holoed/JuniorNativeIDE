@@ -43,8 +43,6 @@ let extract x = (fromJust ((getJsonValue "symbol" >=> jsonToString) x),
 let tickers = (((<$>) extract) . flatten . maybeToList . (parseJson >=> getJsonList "stocks")) <$> 
               httpGet "https://holoed.github.io/stocks.json"
 
-let filter p = foldr (\x xs -> if (p x) then x : xs else xs) []
-
 let pred (x, y, z) = z == "USD" 
 
 val main :: Async Unit
