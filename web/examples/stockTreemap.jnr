@@ -13,8 +13,11 @@ let createJsonGetter = foldKliesli . (fmap getJsonValue)
 val getShortName :: Json -> Maybe Json 
 let getShortName = createJsonGetter ["price", "shortName"]
 
-val getPrice :: Json -> Maybe Json 
+val getPrice :: Json -> Maybe Json  
 let getPrice = createJsonGetter ["price", "regularMarketPrice", "raw"]
+
+val getCurrency :: Json -> Maybe Json  
+let getCurrency = createJsonGetter ["price", "currencySymbol"]
 
 val getPreviousClose :: Json -> Maybe Json 
 let getPreviousClose = createJsonGetter ["summaryDetail", "previousClose", "raw"]
@@ -22,23 +25,25 @@ let getPreviousClose = createJsonGetter ["summaryDetail", "previousClose", "raw"
 val getSector :: Json -> Maybe Json 
 let getSector = createJsonGetter ["assetProfile", "sector"]
 
-val toJsonMap :: List (a, b) -> Json
-let toJsonMap = mapToJson . fromListToMap
+val toJsonMap :: List (a, b) -> Json 
+let toJsonMap = mapToJson . fromListToMap 
 
-val spotData :: Int -> String -> Maybe (String, String, Int, Double, Double)
+val spotData :: Int -> String -> Maybe (String, String, Int, Double, Double, String)
 let spotData i = getData >=> (\z ->    
-                 pure (\name sector price prevClose -> ((fromJust (jsonToString name)),
-                                                        (fromJust (jsonToString sector)), 
-                                                        i,
-                                                        (fromJust (jsonToDouble price)),
-                                                        (fromJust (jsonToDouble prevClose)))) 
+                 pure (\name sector price prevClose ccy -> ((fromJust (jsonToString name)),
+                                                            (fromJust (jsonToString sector)), 
+                                                            i,
+                                                            (fromJust (jsonToDouble price)),
+                                                            (fromJust (jsonToDouble prevClose)),
+                                                            (fromJust (jsonToString ccy)))) 
                       <*> (getShortName z)
-                      <*> (getSector z)  
-                      <*> (getPrice z)
-                       <*> (getPreviousClose z))  
+                      <*> (getSector z)    
+                      <*> (getPrice z)  
+                      <*> (getPreviousClose z)      
+                      <*> (getCurrency z))    
   
-val jsonData :: String -> Async String 
-let jsonData symbol =  
+val jsonData :: String -> Async String  
+let jsonData symbol =   
   httpGet ("https://query1.finance.yahoo.com/v10/finance/quoteSummary/" <> symbol <> "?modules=assetProfile,price,summaryDetail")
 
 val extract :: Json -> (String, Int)
@@ -47,9 +52,6 @@ let extract x = (fromJust ((getJsonValue "symbol" >=> jsonToString) x),
 
 let tickers = (((<$>) extract) . flatten . maybeToList . (parseJson >=> getJsonList "stocks")) <$> 
               httpGet "https://holoed.github.io/stocks.json"
-
-val zeroNegatives :: List (String, Double) -> List (String, Double)
-let zeroNegatives = fmap (\(x, y) -> (x, if (y < 0) then 0 - y else y)) . filter (\(x, y) -> y > 0)  
 
 let main = tickers >>= (\ts ->
            (flatten <$> (fmap maybeToList <$> (sequenceA ((\(x, i) -> (jsonData >=> (pure . spotData i)) x) <$> ts)))))
