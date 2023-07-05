@@ -10,7 +10,10 @@ let getData = parseJson >=>
 val createJsonGetter :: List String -> Json -> Maybe Json
 let createJsonGetter = foldKliesli . (fmap getJsonValue)
 
-val getShortName :: Json -> Maybe Json 
+val getSymbol :: Json -> Maybe Json 
+let getSymbol = createJsonGetter ["price", "symbol"]
+
+val getShortName :: Json -> Maybe Json  
 let getShortName = createJsonGetter ["price", "shortName"]
 
 val getPrice :: Json -> Maybe Json  
@@ -26,17 +29,20 @@ val getSector :: Json -> Maybe Json
 let getSector = createJsonGetter ["assetProfile", "sector"]
 
 val toJsonMap :: List (a, b) -> Json 
-let toJsonMap = mapToJson . fromListToMap 
+let toJsonMap = mapToJson . fromListToMap  
 
-val spotData :: Int -> String -> Maybe (String, String, Int, Double, Double, String)
+val spotData :: Int -> String -> Maybe (String, String, String, Int, Double, Double, String)
 let spotData i = getData >=> (\z ->    
-                 pure (\name sector price prevClose ccy -> ((fromJust (jsonToString name)),
+                 pure (\symbol name sector price prevClose ccy -> 
+                                                            ((fromJust (jsonToString symbol)),
+                                                            (fromJust (jsonToString name)),
                                                             (fromJust (jsonToString sector)), 
                                                             i,
                                                             (fromJust (jsonToDouble price)),
                                                             (fromJust (jsonToDouble prevClose)),
                                                             (fromJust (jsonToString ccy)))) 
-                      <*> (getShortName z)
+                      <*> (getSymbol z) 
+                      <*> (getShortName z) 
                       <*> (getSector z)    
                       <*> (getPrice z)  
                       <*> (getPreviousClose z)      
