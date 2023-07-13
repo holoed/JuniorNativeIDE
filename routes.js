@@ -134,7 +134,7 @@ router.post('/fetch', jsonParser, async function(req, res) {
                 res.send(cachedBody).end();
             }
             else {
-                if (reqUrl.includes("finance.yahoo.com")) {
+                if (reqUrl.includes("finance.yahoo.com/v10/")) {
                     const cookie = await getCookie()
                     const crumb = await getCrumb(cookie)
                     const reqUrlWithCrumb = `${reqUrl}&crumb=${crumb}`;
