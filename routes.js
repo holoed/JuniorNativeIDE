@@ -134,16 +134,49 @@ router.post('/fetch', jsonParser, async function(req, res) {
                 res.send(cachedBody).end();
             }
             else {
-                const response = await fetch(reqUrl);
-                const body = await response.text()
-                cache.set(reqUrl, body, 60);
-                res.send(body).end();
+                if (reqUrl.includes("finance.yahoo.com")) {
+                    const cookie = await getCookie()
+                    const crumb = await getCrumb(cookie)
+                    const reqUrlWithCrumb = `${reqUrl}&crumb=${crumb}`;
+                    const response = await fetch(reqUrlWithCrumb, {
+                        headers: { cookie }
+                    });
+                    const body = await response.text()
+                    cache.set(reqUrl, body, 60);
+                    res.send(body).end();
+                } else {
+                    const response = await fetch(reqUrl);
+                    const body = await response.text()
+                    cache.set(reqUrl, body, 60);
+                    res.send(body).end();
+                }
             }
         } 
     } catch (e) {
+        console.log(e);
         res.sendStatus(500).end();
     }
 });
+
+async function getCookie() {
+    const response = await fetch("https://fc.yahoo.com");
+    const cookie = response.headers.get("set-cookie");
+    if (!cookie) {
+      throw new Error("Failed to fetch cookie");
+    }
+    return cookie;
+  }
+  
+  async function getCrumb(cookie) {
+    const response = await fetch("https://query1.finance.yahoo.com/v1/test/getcrumb", {
+      headers: { cookie },
+    });
+    const crumb = await response.text();
+    if (!crumb) {
+      throw new Error("Failed to fetch crumb");
+    }
+    return crumb;
+  }
 
 function base64ArrayBuffer(arrayBuffer) {
     var base64    = ''
